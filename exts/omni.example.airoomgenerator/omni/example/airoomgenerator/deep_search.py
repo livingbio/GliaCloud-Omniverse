@@ -16,6 +16,76 @@
 from omni.kit.ngsearch.client import NGSearchClient
 import asyncio
 import carb
+import requests
+
+def _process_json_data(json_data):
+    """Process the JSON data returned by USD Search API."""
+    for item in json_data:
+        # replace search server with content server
+        item["url"] = item["url"].replace(
+            "s3://deepsearch-demo-content/",
+            "https://omniverse-content-production.s3.us-west-2.amazonaws.com/"
+        )
+        # optionally store images in temp location
+        """
+        import base64
+        import tempfile
+        if "image" in item:
+            # Create a temporary file in the system's temp directory
+            with tempfile.NamedTemporaryFile(prefix="temp_", suffix=".png", delete=False) as temp_file:
+                # Decode the base64 image data and write it to the temp file
+                image_data = base64.b64decode(item["image"])
+                temp_file.write(image_data)
+                full_path = temp_file.name
+
+            # Replace the base64 encoded image with the file path
+            item["image"] = full_path
+
+            if "bbox_dimension_x" in item:
+                item["bbox_dimension"] = [
+                    item["bbox_dimension_x"],
+                    item["bbox_dimension_y"],
+                    item["bbox_dimension_z"],
+                ]
+        """
+
+        return json_data
+
+async def send_api_request(query):
+    import os
+
+    _url = "https://ai.api.nvidia.com/v1/omniverse/nvidia/usdsearch"
+
+    _api_key = "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"
+
+    _payload = {
+        "description": query,
+        "limit": 1,
+        "cutoff_threshold": 1.05,
+        "return_images": False,
+        "return_metadata": False,
+        "return_root_prims": False,
+        "return_predictions": False,
+        "file_extension_include": "usd*",
+    }
+
+    _headers = {
+        "Authorization": "Bearer {}".format(_api_key),
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        # Send the GET request
+        _response = requests.post(_url, headers=_headers, json=_payload)
+        _response.raise_for_status()
+
+        result = _response.json()
+        # Process the JSON data
+        filtered_result = _process_json_data(result)
+        return filtered_result
+    except requests.RequestException as e:
+        return {"error": f"API request failed: {str(e)}"}
 
 async def query_items(queries, url: str, paths):
 
@@ -44,12 +114,11 @@ async def _query_first(query: str, url: str, paths):
 
     filtered_query = filtered_query + query
 
-    search_result = await NGSearchClient.get_instance().find2(
-        query=filtered_query, url=url)
+    search_result = await send_api_request(query)
     
     if search_result is not None:
-        if len(search_result.paths) > 0:
-            return (query, search_result.paths[0].uri)
+        if type(search_result) is list and len(search_result) > 0:
+            return (query, search_result[0]["url"])
     else:
         carb.log_warn(f"Search Results came up with nothing for {query}. Make sure you've configured your nucleus path")
     return None

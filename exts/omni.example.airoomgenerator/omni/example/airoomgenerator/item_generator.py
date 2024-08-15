@@ -32,8 +32,7 @@ def place_deepsearch_results(gpt_results, query_result, root_prim_path):
         references: Usd.references = next_prim.GetReferences()
         
         # TODO: The query results should returnt he full path of the prim
-        references.AddReference(
-            assetPath="omniverse://ov-simready" + item_path)
+        references.AddReference(assetPath=item_path)
 
         # Add reference for future search refinement 
         config = next_prim.CreateAttribute("DeepSearch:Query", Sdf.ValueTypeNames.String)
