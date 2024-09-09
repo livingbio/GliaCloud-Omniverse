@@ -54,9 +54,9 @@ def _process_json_data(json_data):
 async def send_api_request(query):
     import os
 
-    _url = "https://ai.api.nvidia.com/v1/omniverse/nvidia/usdsearch"
+    _url = "http://10.0.10.4:30517/v2/deepsearch/search"
 
-    _api_key = "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"
+    _api_key = "b21uaXZlcnNlOjNMOXVYcFQ2I053IXFGNXZSMXNAa0U4alkyYlc3eg=="
 
     _payload = {
         "description": query,
@@ -70,7 +70,7 @@ async def send_api_request(query):
     }
 
     _headers = {
-        "Authorization": "Bearer {}".format(_api_key),
+        "Authorization": "Basic {}".format(_api_key),
         "Accept": "application/json",
         "Content-Type": "application/json",
     }

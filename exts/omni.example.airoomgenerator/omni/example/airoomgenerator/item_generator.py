@@ -21,6 +21,7 @@ def place_deepsearch_results(gpt_results, query_result, root_prim_path):
     for item in query_result:
         item_name = item[0]
         item_path = item[1]
+        item_path = item_path.replace('10.0.1.4', 'nucleus.githubhero.com')
         # Define Prim          
         prim_parent_path = root_prim_path + item_name.replace(" ", "_")
         prim_path = prim_parent_path + "/" + item_name.replace(" ", "_")
