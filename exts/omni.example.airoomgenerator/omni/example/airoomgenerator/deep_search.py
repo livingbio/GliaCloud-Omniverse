@@ -117,7 +117,7 @@ async def _query_first(query: str, url: str, paths):
     search_result = await send_api_request(query)
     
     if search_result is not None:
-        if type(search_result) is list and len(search_result) > 0:
+        if isinstance(search_result, list) and len(search_result) > 0:
             return (query, search_result[0]["url"])
     else:
         carb.log_warn(f"Search Results came up with nothing for {query}. Make sure you've configured your nucleus path")
@@ -126,5 +126,18 @@ async def _query_first(query: str, url: str, paths):
 async def query_all(query: str, url: str, paths):
 
     filtered_query = "ext:usd,usdz,usda " + query
-    return await NGSearchClient.get_instance().find2(query=filtered_query, url=url)
+    # return await NGSearchClient.get_instance().find2(query=filtered_query, url=url)
+    if len(paths) > 0:
+        filtered_query = filtered_query + " path: "
+
+        for path in paths:
+            filtered_query = filtered_query + "\"" + str(path) + "\","
+        
+        filtered_query = filtered_query[:-1]
+    
+        filtered_query = filtered_query + " "
+
+    filtered_query = filtered_query + query
+
+    return await send_api_request(filtered_query)
         

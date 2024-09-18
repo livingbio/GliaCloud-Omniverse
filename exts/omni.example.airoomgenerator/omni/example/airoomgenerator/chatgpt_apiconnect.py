@@ -13,13 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cache
 import json
 import carb
 import aiohttp
 import asyncio
 from .prompts import system_input, user_input, assistant_input
-from .deep_search import query_items
+from .deep_search import query_items, query_all
 from .item_generator import place_greyboxes, place_deepsearch_results
+
+@cache
+def all_gliacloud_assets():
+    settings = carb.settings.get_settings()
+    nucleus_path = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/deepsearch_nucleus_path")
+    return query_all("", url=nucleus_path)
+
 
 async def chatGPT_call(prompt: str):
     # Load your API key from an environment variable or secret management service
@@ -31,7 +39,7 @@ async def chatGPT_call(prompt: str):
     # Send a request API
     try:
         parameters = {
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o-mini",
             "messages": [
                     {"role": "system", "content": system_input},
                     {"role": "user", "content": user_input},
