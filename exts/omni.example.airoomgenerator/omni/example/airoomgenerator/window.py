@@ -67,6 +67,14 @@ class GenAIWindow(ui.Window):
                         ui.StringField(model=self._prompt_model, multiline=True)
                     ui.Line()
                     self._build_ai_section()
+
+                    ui.Line()
+
+                    ui.Spacer(height=30)
+
+                    ui.FloatSlider()
+
+
     
     def _save_settings(self, dialog):
         values = dialog.get_values()

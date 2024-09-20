@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-system_input='''You are an area generator expert. Given an area of a certain size, you can generate a list of items that are appropriate to that area, in the right place, and with a representative material.
+system_input='''You are an expert in architectural design. In particular, you excel in space planning, aesthetics, and functionality.
 
-You operate in a 3D Space. You work in a X,Y,Z coordinate system. X denotes width, Y denotes height, Z denotes depth. 0.0,0.0,0.0 is the default space origin.
+ Given an area of a certain size, you can generate a list of items that are appropriate to that area, in the right place, and with a representative material.
+
+You operate in a physically-real 3D Space. You work in a X,Y,Z coordinate system. X denotes width, Y denotes height, Z denotes depth. 0.0,0.0,0.0 is the default space origin.
 
 You receive from the user the name of the area, the size of the area on X and Z axis in centimetres, the origin point of the area (which is at the center of the area).
 
@@ -34,17 +36,23 @@ For each object you need to store:
 - X: coordinate of the object on X axis
 - Y: coordinate of the object on Y axis
 - Z: coordinate of the object on Z axis
+- rotateX: rotation on the X axis
+- rotateY: rotation on the Y axis
+- rotateZ: rotation on the Z axis
 - Length: dimension in cm of the object on X axis
 - Width: dimension in cm of the object on Y axis
 - Height: dimension in cm of the object on Z axis
 - Material: a reasonable material of the object using an exact name from the following list: Plywood, Leather_Brown, Leather_Pumpkin, Leather_Black, Aluminum_Cast, Birch, Beadboard, Cardboard, Cloth_Black, Cloth_Gray, Concrete_Polished, Glazed_Glass, CorrugatedMetal, Cork, Linen_Beige, Linen_Blue, Linen_White, Mahogany, MDF, Oak, Plastic_ABS, Steel_Carbon, Steel_Stainless, Veneer_OU_Walnut, Veneer_UX_Walnut_Cherry, Veneer_Z5_Maple.
 
-
 Each object name should include an appropriate adjective.
+
+For rotation, make sure the objects are facing a way that makes sense. For example, chairs should face tables.
 
 Keep in mind, objects should be disposed in the area to create the most meaningful layout possible, and they shouldn't overlap.
 All objects must be within the bounds of the area size; Never place objects further than 1/2 the length or 1/2 the depth of the area from the origin.
 Also keep in mind that the objects should be disposed all over the area in respect to the origin point of the area, and you can use negative values as well to display items correctly, since origin of the area is always at the center of the area.
+
+Also, always keep in mind that this is a physically-real 3D space, and we are creating physically-real 3D objects. 
 
 Remember, you only generate JSON code, nothing else. It's very important.
 '''
@@ -63,7 +71,10 @@ assistant_input='''{
             "object_name": "Parts_Pallet_1",
             "X": -150,
             "Y": 0.0,
-            "Z": 250, 
+            "Z": 250,
+            "rotateX": 0,
+            "rotateY": 0,
+            "rotateZ": 0,
             "Length": 100,
             "Width": 100,
             "Height": 10,
@@ -74,6 +85,9 @@ assistant_input='''{
             "X": -150,
             "Y": 0.0,
             "Z": 150,
+            "rotateX": 0,
+            "rotateY": 0,
+            "rotateZ": 0,
             "Length": 100,
             "Width": 100,
             "Height": 10,
@@ -84,6 +98,9 @@ assistant_input='''{
             "X": -150,
             "Y": 0.0,
             "Z": 50,
+            "rotateX": 0,
+            "rotateY": 0,
+            "rotateZ": 0,
             "Length": 200,
             "Width": 50,
             "Height": 300,
@@ -94,6 +111,9 @@ assistant_input='''{
             "X": -150,
             "Y": 0.0,
             "Z": -50,
+            "rotateX": 0,
+            "rotateY": 0,
+            "rotateZ": 0,
             "Length": 100,
             "Width": 100,
             "Height": 10,
@@ -104,6 +124,9 @@ assistant_input='''{
             "X": 50,
             "Y": 0.0,
             "Z": -50,
+            "rotateX": 0,
+            "rotateY": 0,
+            "rotateZ": 0,
             "Length": 200,
             "Width": 100,
             "Height": 250,
@@ -116,6 +139,9 @@ assistant_input='''{
             "X": 150,
             "Y": 0.0,
             "Z": -50,
+            "rotateX": 0,
+            "rotateY": 0,
+            "rotateZ": 0,
             "Length": 200,
             "Width": 100,
             "Height": 250,

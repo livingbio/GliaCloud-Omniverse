@@ -46,8 +46,11 @@ def place_deepsearch_results(gpt_results, query_result, root_prim_path):
         x = next_object['X']
         y = next_object['Y']
         z = next_object['Z']
+        rotateX = next_object['rotateX']
+        rotateY = next_object['rotateY']
+        rotateZ = next_object['rotateZ']
 
-        set_transformTRS_attrs(parent_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(0,-90,-90), Gf.Vec3d(1.0,1.0,1.0))
+        set_transformTRS_attrs(parent_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(rotateX, float(rotateY) - 90, float(rotateZ) - 90), Gf.Vec3d(1.0,1.0,1.0))
         scale_object_if_needed(prim_parent_path)
 
 def place_greyboxes(gpt_results, root_prim_path):
