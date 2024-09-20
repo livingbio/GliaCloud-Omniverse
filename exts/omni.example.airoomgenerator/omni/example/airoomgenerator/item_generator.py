@@ -50,7 +50,9 @@ def place_deepsearch_results(gpt_results, query_result, root_prim_path):
         rotateY = next_object['rotateY']
         rotateZ = next_object['rotateZ']
 
-        set_transformTRS_attrs(parent_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(rotateX, float(rotateY) - 90, float(rotateZ) - 90), Gf.Vec3d(1.0,1.0,1.0))
+        set_transformTRS_attrs(next_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(0, -90, -90), Gf.Vec3d(1.0,1.0,1.0))
+
+        set_transformTRS_attrs(parent_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(rotateX, rotateY, rotateZ), Gf.Vec3d(1.0,1.0,1.0))
         scale_object_if_needed(prim_parent_path)
 
 def place_greyboxes(gpt_results, root_prim_path):
@@ -67,13 +69,18 @@ def place_greyboxes(gpt_results, root_prim_path):
         x = item['X']
         y = item['Y']+height*100*.5 #shift bottom of object to y=0
         z = item['Z']
+
+        rotateX = item['rotateX']
+        rotateY = item['rotateY']
+        rotateZ = item['rotateZ']
+
         material = item['Material']
 
         # Create Prim
         parent_prim = create_prim(prim_parent_path)
         set_transformTRS_attrs(parent_prim)
         prim = create_prim(prim_path, 'Cube')
-        set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), scale=Gf.Vec3d(length, height, width))
+        set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), rotate=Gf.Vec3d(rotateX, float(rotateY) - 90, float(rotateZ) - 90), scale=Gf.Vec3d(length, height, width))
         prim.GetAttribute('extent').Set([(-50.0, -50.0, -50.0), (50.0, 50.0, 50.0)])
         prim.GetAttribute('size').Set(100)
 

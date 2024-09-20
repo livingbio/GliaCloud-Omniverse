@@ -66,7 +66,7 @@ async def send_api_request(query):
         "return_metadata": False,
         "return_root_prims": False,
         "return_predictions": False,
-        "file_extension_include": "usd*",
+        "file_extension_include": "usd",
     }
 
     _headers = {
