@@ -80,7 +80,7 @@ def place_greyboxes(gpt_results, root_prim_path):
         parent_prim = create_prim(prim_parent_path)
         set_transformTRS_attrs(parent_prim)
         prim = create_prim(prim_path, 'Cube')
-        set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), rotate=Gf.Vec3d(rotateX, float(rotateY) - 90, float(rotateZ) - 90), scale=Gf.Vec3d(length, height, width))
+        set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), rotate=Gf.Vec3d(rotateX, rotateY, rotateZ), scale=Gf.Vec3d(length, height, width))
         prim.GetAttribute('extent').Set([(-50.0, -50.0, -50.0), (50.0, 50.0, 50.0)])
         prim.GetAttribute('size').Set(100)
 
