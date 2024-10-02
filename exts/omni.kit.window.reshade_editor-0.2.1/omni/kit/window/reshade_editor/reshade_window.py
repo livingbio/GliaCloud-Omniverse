@@ -331,19 +331,20 @@ class ReshadeWindow:
         self._vdelegate = ReshadeVariableEditorDelegate()
 
         with self._window.frame:
-            with ui.VStack(height=0, spacing=5):
-                self._tview = ui.TreeView(
-                    self._tmodel,
-                    delegate=self._tdelegate,
-                    root_visible=False,
-                    header_visible=False)
-                ui.Line()
-                self._vview = ui.TreeView(
-                    self._vmodel,
-                    delegate=self._vdelegate,
-                    root_visible=False,
-                    header_visible=False,
-                    expand_on_branch_click=True)
+            with ui.ScrollingFrame():
+                with ui.VStack(height=0, spacing=5):
+                    self._tview = ui.TreeView(
+                        self._tmodel,
+                        delegate=self._tdelegate,
+                        root_visible=False,
+                        header_visible=False)
+                    ui.Line()
+                    self._vview = ui.TreeView(
+                        self._vmodel,
+                        delegate=self._vdelegate,
+                        root_visible=False,
+                        header_visible=False,
+                        expand_on_branch_click=True)
 
     def _on_update(self):
         self._build_ui()
