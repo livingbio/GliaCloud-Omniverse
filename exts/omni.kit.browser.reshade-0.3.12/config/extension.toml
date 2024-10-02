@@ -1,0 +1,45 @@
+[package]
+# Semantic Versionning is used: https://semver.org/
+version = "0.3.12"
+
+# Lists people or organizations that are considered the "authors" of the package.
+authors = ["NVIDIA"]
+
+# The title and description fields are primarly for displaying extension info in UI
+title = "Reshade browser and menu"
+description="A browser and menu to work with Reshade presets."
+
+# URL of the extension source repository.
+repository="https://gitlab-master.nvidia.com/omniverse/kit-extensions/kit-reshade-browser"
+
+# Keywords for the extension
+keywords = ['browser', 'reshade']
+
+# Location of change log file in target (final) folder of extension, relative to the root.
+# More info on writing changelog: https://keepachangelog.com/en/1.0.0/
+changelog="docs/CHANGELOG.md"
+
+category = "Rendering"
+readme  = "docs/README.md"
+preview_image = "data/preview.png"
+icon = "data/icon.svg"
+feature = true
+
+[dependencies]
+"omni.kit.browser.folder.core" = {}
+"omni.kit.commands" = {}
+"omni.kit.menu.utils" = {}
+"omni.usd" = {}
+
+# Main python module this extension provides, it will be publicly available as "import omni.kit.browser.reshade".
+[[python.module]]
+name = "omni.kit.browser.reshade"
+
+[[test]]
+dependencies = [
+    "omni.kit.renderer.core",
+]
+
+[settings]
+exts."omni.kit.browser.reshade".min_thumbnail_size = 32
+exts."omni.kit.browser.reshade".max_thumbnail_size = 512
