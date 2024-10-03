@@ -100,9 +100,9 @@ uniform float MXAO_FADE_DEPTH <
 uniform int MXAO_FILTER_SIZE <
 	ui_type = "slider";
     ui_label = "Filter Quality";
-    ui_min = 0; ui_max = 2;	
+    ui_min = 0; ui_max = 3;	
     ui_category = "Blending";
-> = 1;
+> = 0;
 
 uniform bool MXAO_DEBUG_VIEW_ENABLE <
     ui_label = "Show Raw AO";
@@ -199,7 +199,7 @@ uniform int VERS <
  #define DEINTERLEAVE_TILE_COUNT 4u
 #else 
  #define DEINTERLEAVE_HIGH       1
- #define DEINTERLEAVE_TILE_COUNT 5u
+ #define DEINTERLEAVE_TILE_COUNT 4u
 #endif
 
 uniform uint FRAMECOUNT < source = "framecount"; >;
@@ -694,7 +694,7 @@ void OcclusionWrap2PS(in VSOUT i, out float2 o : SV_Target0)
     //need to do it here again because the AO pass writes to AOTex2, which is also intermediate for filter
     //so we only take the new texels and transfer them to AOTex1, so AOTex1 contains unfiltered, reconstructed data
     if(shading_rate(tile_idx)) discard;
-    o = tex2Dfetch(sAOTexRaw, read_pos).xy;    
+    o = tex2Dfetch(sAOTexRaw, read_pos).xy;
 }
 #endif
 /*
@@ -735,6 +735,8 @@ float2 filter(float2 uv, sampler sAO, int iter)
     bool blurry = g < 0;
     float flip = iter ? -1 : 1;
 
+    // flip = -1
+
     float4 ao, depth, mv;
     ao = tex2DgatherR(sAO, uv + flip * BUFFER_PIXEL_SIZE * float2(-0.5, -0.5));
     depth = abs(tex2DgatherG(sAO, uv + flip * BUFFER_PIXEL_SIZE * float2(-0.5, -0.5))); //abs because sign flip for edge pixels!
@@ -773,6 +775,8 @@ void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
         t = filter(i.uv, sAOTex2, 1);
     else if(MXAO_FILTER_SIZE == 1)
         t = filter(i.uv, sAOTex1, 1);
+    else if(MXAO_FILTER_SIZE == 3)
+        t = tex2Dlod(sAOTexRaw, i.uv / 4.0, 0).xy;
     else 
         t = tex2Dlod(sAOTex1, i.uv, 0).xy;
 
@@ -781,6 +785,8 @@ void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
     mxao = lerp(1, mxao, saturate(MXAO_SSAO_AMOUNT)); 
     if(MXAO_SSAO_AMOUNT > 1) mxao = lerp(mxao, mxao * mxao, saturate(MXAO_SSAO_AMOUNT - 1)); //if someone _MUST_ use a higher intensity, switch to gamma
     mxao = lerp(1, mxao, get_fade_factor(d));
+
+    // color
 
     float3 color = tex2D(ColorInput, i.uv).rgb;
 
@@ -794,7 +800,7 @@ void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
 }
 
 float4 PS(float4 vpos : SV_Position, float2 uv : TexCoord) : SV_Target {
-    float visibility = tex2Dlod(sAOTexRaw, uv / 5.0, 0).x;
+    float visibility = tex2Dlod(sAOTexRaw, uv / 4.0, 0).x;
 
     return float4(visibility.xxx, 1);
 }
@@ -839,9 +845,9 @@ technique MartysMods_MXAO
 #else 
     pass { VertexShader = MainVS; PixelShader = DepthInterleavePS; RenderTarget = ZSrc; }
     pass { VertexShader = MainVS; PixelShader = OcclusionWrap1PS;  RenderTarget = AOTexRaw; }
-    // pass { VertexShader = MainVS; PixelShader = OcclusionWrap2PS;  RenderTarget = AOTex1; }
+    pass { VertexShader = MainVS; PixelShader = OcclusionWrap2PS;  RenderTarget = AOTex1; }
 #endif
-    // pass { VertexShader = MainVS; PixelShader = Filter1PS; RenderTarget = AOTex2; }
-    // pass { VertexShader = MainVS; PixelShader = Filter2PS; }
-    pass { VertexShader = MainVS; PixelShader = PS; }
+    pass { VertexShader = MainVS; PixelShader = Filter1PS; RenderTarget = AOTex2; }
+    pass { VertexShader = MainVS; PixelShader = Filter2PS; }
+    // pass { VertexShader = MainVS; PixelShader = PS; }
 }
