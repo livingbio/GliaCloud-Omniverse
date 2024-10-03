@@ -15,9 +15,7 @@
  
 =============================================================================*/
 
-#pragma once 
-
-#include "mmx_global.fxh"
+#pragma once
 
 static const float PI      = 3.1415926535;
 static const float HALF_PI = 1.5707963268;
@@ -30,6 +28,8 @@ static const float FLOAT16MAX = 65504.0;
 
 namespace Math 
 {
+
+#define CEIL_DIV(num, denom) ((((num) - 1) / (denom)) + 1)
 
 /*=============================================================================
 	Fast Math

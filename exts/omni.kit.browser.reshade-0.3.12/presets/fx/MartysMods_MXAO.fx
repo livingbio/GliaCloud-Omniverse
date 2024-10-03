@@ -40,6 +40,8 @@
 	Preprocessor settings
 =============================================================================*/
 
+#include "ReShade.fxh"
+
 #ifndef MXAO_AO_TYPE
  #define MXAO_AO_TYPE       0
 #endif 
@@ -174,8 +176,6 @@ sampler sAOTexRaw { Texture = AOTexRaw;  MinFilter=POINT; MipFilter=POINT; MagFi
 sampler sAOTex1 { Texture = AOTex1; };
 sampler sAOTex2 { Texture = AOTex2; };
 
-#include ".\MartysMods\mmx_global.fxh"
-#include ".\MartysMods\mmx_depth.fxh"
 #include ".\MartysMods\mmx_math.fxh"
 #include ".\MartysMods\mmx_camera.fxh"
 
@@ -432,7 +432,7 @@ void process_horizons(float2 h)
 //read from tiled texture
 float read_z(float2 uv, float w)
 {
-    return tex2Dlod(sZSrc, uv, 0).x;
+    return tex2D(sZSrc, uv).x;
 }
 
 bool shading_rate(uint2 tile_idx)
@@ -457,7 +457,7 @@ bool shading_rate(uint2 tile_idx)
 VSOUT MainVS(in uint id : SV_VertexID)
 {
     VSOUT o;
-    FullscreenTriangleVS(id, o.vpos, o.uv); 
+    PostProcessVS(id, o.vpos, o.uv); 
     return o;
 }
 
@@ -504,7 +504,7 @@ void Deinterleave3DCS(in CSIN i)
 void DepthInterleavePS(in VSOUT i, out float o : SV_Target0)
 { 
     float2 get_uv = deinterleave_uv(i.uv);
-    o = Camera::depth_to_z(Depth::get_linear_depth(get_uv));
+    o = Camera::depth_to_z(ReShade::GetLinearizedDepth(get_uv));
 }
 #endif
 
@@ -523,9 +523,9 @@ float2 MXAOFused(uint2 screenpos, float4 uv, float depth_layer)
     float3 v = normalize(-p);  
 
 #if _COMPUTE_SUPPORTED
-    static const float4 texture_scale = BUFFER_ASPECT_RATIO.xyxy;
+    static const float4 texture_scale = float2(1, BUFFER_ASPECT_RATIO.x).xyxy;
 #else
-    static const float4 texture_scale = float2(1.0 / DEINTERLEAVE_TILE_COUNT, 1.0).xxyy * BUFFER_ASPECT_RATIO.xyxy;
+    static const float4 texture_scale = float2(1.0 / DEINTERLEAVE_TILE_COUNT, 1.0).xxyy * float2(1, BUFFER_ASPECT_RATIO.x).xyxy;
 #endif
 
     uint slice_count  = samples_per_preset[MXAO_GLOBAL_SAMPLE_QUALITY_PRESET].x;    
@@ -776,9 +776,9 @@ void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
     else if(MXAO_FILTER_SIZE == 1)
         t = filter(i.uv, sAOTex1, 1);
     else if(MXAO_FILTER_SIZE == 3)
-        t = tex2Dlod(sAOTexRaw, i.uv / 4.0, 0).xy;
+        t = tex2D(sAOTexRaw, i.uv / 4.0).xy;
     else 
-        t = tex2Dlod(sAOTex1, i.uv, 0).xy;
+        t = tex2D(sAOTex1, i.uv).xy;
 
     float mxao = t.x, d = abs(t.y);  //abs because sign flip for edge pixels!
 
@@ -800,7 +800,7 @@ void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
 }
 
 float4 PS(float4 vpos : SV_Position, float2 uv : TexCoord) : SV_Target {
-    float visibility = tex2Dlod(sAOTexRaw, uv / 4.0, 0).x;
+    float visibility = tex2D(sAOTexRaw, uv / 4.0).x;
 
     return float4(visibility.xxx, 1);
 }

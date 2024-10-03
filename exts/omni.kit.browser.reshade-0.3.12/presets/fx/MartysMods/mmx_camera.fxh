@@ -15,10 +15,7 @@
  
 =============================================================================*/
 
-#pragma once 
-
-#include "mmx_global.fxh"
-#include "mmx_depth.fxh"
+#pragma once
 
 #ifndef _MARTYSMODS_GLOBAL_FOV
  #define _MARTYSMODS_GLOBAL_FOV     60.0
@@ -43,7 +40,7 @@ float z_to_depth(float z)
 float2 proj_to_uv(float3 pos)
 {
     //optimized math to simplify matrix mul
-    static const float3 uvtoprojADD = float3(-tan(radians(_MARTYSMODS_GLOBAL_FOV) * 0.5).xx, 1.0) * BUFFER_ASPECT_RATIO.yxx;
+    static const float3 uvtoprojADD = float3(-tan(radians(_MARTYSMODS_GLOBAL_FOV) * 0.5).xx, 1.0) * float3(BUFFER_ASPECT_RATIO.x, 1, 1);
     static const float3 uvtoprojMUL = float3(-2.0 * uvtoprojADD.xy, 0.0);
     static const float4 projtouv    = float4(rcp(uvtoprojMUL.xy), -rcp(uvtoprojMUL.xy) * uvtoprojADD.xy); 
     return (pos.xy / pos.z) * projtouv.xy + projtouv.zw;          
@@ -52,7 +49,7 @@ float2 proj_to_uv(float3 pos)
 float3 uv_to_proj(float2 uv, float z)
 {
     //optimized math to simplify matrix mul
-    static const float3 uvtoprojADD = float3(-tan(radians(_MARTYSMODS_GLOBAL_FOV) * 0.5).xx, 1.0) * BUFFER_ASPECT_RATIO.yxx;
+    static const float3 uvtoprojADD = float3(-tan(radians(_MARTYSMODS_GLOBAL_FOV) * 0.5).xx, 1.0) * float3(BUFFER_ASPECT_RATIO.x, 1, 1);
     static const float3 uvtoprojMUL = float3(-2.0 * uvtoprojADD.xy, 0.0);
     static const float4 projtouv    = float4(rcp(uvtoprojMUL.xy), -rcp(uvtoprojMUL.xy) * uvtoprojADD.xy); 
     return (uv.xyx * uvtoprojMUL + uvtoprojADD) * z;
@@ -60,7 +57,7 @@ float3 uv_to_proj(float2 uv, float z)
 
 float3 uv_to_proj(float2 uv)
 {
-    float z = depth_to_z(Depth::get_linear_depth(uv));
+    float z = depth_to_z(ReShade::GetLinearizedDepth(uv));
     return uv_to_proj(uv, z);
 }
 
