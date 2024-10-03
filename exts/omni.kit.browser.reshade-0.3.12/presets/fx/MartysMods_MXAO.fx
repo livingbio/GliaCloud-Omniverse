@@ -41,7 +41,7 @@
 =============================================================================*/
 
 #ifndef MXAO_AO_TYPE
- #define MXAO_AO_TYPE       0
+ #define MXAO_AO_TYPE       2
 #endif 
 
 #ifndef MXAO_USE_LAUNCHPAD_NORMALS
@@ -112,11 +112,11 @@ uniform bool MXAO_DEBUG_VIEW_ENABLE <
 #define TOKENIZE(s) #s
 
 uniform int HELP1 <
-ui_type = "radio";
-    ui_label = " ";
+    ui_type = "radio";
+    ui_label = "help";
     ui_category = "Preprocessor definition Documentation";
     ui_category_closed = false;
-    ui_text = 
+    ui_tooltip = 
             "\n"
             TOKENIZE(MXAO_AO_TYPE)
             ":\n\n0: Ground Truth Ambient Occlusion (high contrast, fast)\n"
@@ -178,6 +178,15 @@ sampler sAOTex2 { Texture = AOTex2; };
 #include ".\MartysMods\mmx_depth.fxh"
 #include ".\MartysMods\mmx_math.fxh"
 #include ".\MartysMods\mmx_camera.fxh"
+
+/*
+uniform int VERS <
+    ui_type = "drag";
+    ui_label = "Version";
+    ui_category = "Debug";
+    ui_min = 0; ui_max = 5;
+> = _tester;
+*/
 
 #if MXAO_USE_LAUNCHPAD_NORMALS 
  #include ".\MartysMods\mmx_deferred.fxh"
@@ -375,7 +384,7 @@ bool shading_rate(uint2 tile_idx)
 }
 
 //=============================================================================                  
-#else //Needs this because DX9 is a jackass and doesn't have bitwise ops... so emulate them with floats
+#else //Needs this because DX9 doesn't have bitwise ops... so emulate them with floats
 //=============================================================================   
 
 bool bitfield_is_set(float bitfield, int bit)
@@ -625,7 +634,7 @@ float2 MXAOFused(uint2 screenpos, float4 uv, float depth_layer)
 #else
         visibility += integrate_sectors() * sliceweight;
         slicesum += sliceweight;         
-#endif
+#endif   
     }
 
 #if MXAO_AO_TYPE == 0
@@ -756,7 +765,7 @@ void Filter1PS(in VSOUT i, out float2 o : SV_Target0)
     o = filter(i.uv, sAOTex1, 0);
 }
 
-void Filter2PS(in VSOUT i, out float3 o : SV_Target0)
+void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
 {    
     float2 t;
     [branch]
@@ -781,8 +790,28 @@ void Filter2PS(in VSOUT i, out float3 o : SV_Target0)
     color = 1.1 * color * rcp(color + 1.0); 
     color = sqrt(color); 
 
-    o = MXAO_DEBUG_VIEW_ENABLE ? mxao : color;
+    o = MXAO_DEBUG_VIEW_ENABLE ? float4(mxao, mxao, mxao, 1) : float4(color, 1);
 }
+
+float4 PS(float4 vpos : SV_Position, float2 uv : TexCoord) : SV_Target {
+    float3 depth = (Camera::z_to_depth(tex2Dlod(sZSrc, uv, 0).x)).xxx;
+
+    const float dither_bit = 8.0; // Number of bits per channel. Should be 8 for most monitors.
+    // Calculate grid position
+    float grid_position = frac(dot(uv, (BUFFER_SCREEN_SIZE * float2(1.0 / 16.0, 10.0 / 36.0)) + 0.25));
+    // Calculate how big the shift should be
+    float dither_shift = 0.25 * (1.0 / (pow(2, dither_bit) - 1.0));
+    // Shift the individual colors differently, thus making it even harder to see the dithering pattern
+    float3 dither_shift_RGB = float3(dither_shift, -dither_shift, dither_shift); // Subpixel dithering
+    // Modify shift acording to grid position.
+    dither_shift_RGB = lerp(2.0 * dither_shift_RGB, -2.0 * dither_shift_RGB, grid_position);
+    depth += dither_shift_RGB;
+
+
+
+    return float4(depth, 1);
+}
+
 
 /*=============================================================================
 	Techniques
@@ -805,7 +834,7 @@ technique MartysMods_MXAO
         "\n"       
         "______________________________________________________________________________";
 >
-{ 
+{
 #if _COMPUTE_SUPPORTED
     pass 
     { 
@@ -822,9 +851,10 @@ technique MartysMods_MXAO
     }
 #else 
     pass { VertexShader = MainVS; PixelShader = DepthInterleavePS; RenderTarget = ZSrc; }
-    pass { VertexShader = MainVS; PixelShader = OcclusionWrap1PS;  RenderTarget = AOTexRaw; }
-    pass { VertexShader = MainVS; PixelShader = OcclusionWrap2PS;  RenderTarget = AOTex1; }
+    // pass { VertexShader = MainVS; PixelShader = OcclusionWrap1PS;  RenderTarget = AOTexRaw; }
+    // pass { VertexShader = MainVS; PixelShader = OcclusionWrap2PS;  RenderTarget = AOTex1; }
 #endif
-    pass { VertexShader = MainVS; PixelShader = Filter1PS; RenderTarget = AOTex2; }
-    pass { VertexShader = MainVS; PixelShader = Filter2PS; }
+    // pass { VertexShader = MainVS; PixelShader = Filter1PS; RenderTarget = AOTex2; }
+    // pass { VertexShader = MainVS; PixelShader = Filter2PS; }
+    pass { VertexShader = MainVS; PixelShader = PS; }
 }

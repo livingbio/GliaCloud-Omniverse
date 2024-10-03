@@ -9,6 +9,7 @@
 import omni.ui as ui
 import rtx.reshade
 from typing import Callable
+import carb
 
 reshade = rtx.reshade.acquire_reshade_interface()
 
@@ -348,3 +349,4 @@ class ReshadeWindow:
 
     def _on_update(self):
         self._build_ui()
+        carb.log_warn("Updated")

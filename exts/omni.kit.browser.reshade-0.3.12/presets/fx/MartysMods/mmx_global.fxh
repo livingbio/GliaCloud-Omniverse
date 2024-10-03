@@ -42,6 +42,24 @@
  #define _BITWISE_SUPPORTED          0
 #endif
 
+/*
+#if __RENDERER__ >= RENDERER_VULKAN
+ static const uint _version = 0;
+#elif __RENDERER__ >= RENDERER_OPENGL
+ static const uint _version = 1;
+#elif __RENDERER__ >= RENDERER_D3D12
+ static const uint _version = 2;
+#elif __RENDERER__ >= RENDERER_D3D11
+ static const uint _version = 3;
+#elif __RENDERER__ >= RENDERER_D3D10
+ static const uint _versionn = 4;
+#elif __RENDERER__ >= RENDERER_D3D9
+ static const uint _version = 5;
+#else
+ static const uint _version = 6;
+#endif
+*/
+
 //Frequently used things / ReShade FX extensions
 
 static const float2 BUFFER_PIXEL_SIZE = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
