@@ -51,7 +51,7 @@ class ReshadeBrowserWindow(ui.Window):
                 min_thumbnail_size=min_thumbnail_size,
                 max_thumbnail_size=max_thumbnail_size,
             )
-        self.reload_local_presets()
+        # self.reload_local_presets()
 
     def reload_local_presets(self):
         url = self._local_presets_folder

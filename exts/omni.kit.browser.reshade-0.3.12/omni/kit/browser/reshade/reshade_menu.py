@@ -134,7 +134,7 @@ class ReshadeMenuHookExt(omni.ext.IExt):
         # self.is_enabled = self.rendersettings.get("/rtx/reshade/enable")
         self.menu_name=__MENU_NAME__;
         self._presets_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(ext_id) + "/presets/"
-        self._fx_path=omni.kit.app.get_app().get_extension_manager().get_extension_path(ext_id) + "/presets/"+"/fx/"
+        self._fx_path=omni.kit.app.get_app().get_extension_manager().get_extension_path(ext_id) + "/presets/fx/"
         # print("Presets path:",self._presets_path)
         self._presets_dict = self._make_presets_dict(self._presets_path)
         self.menu_build()

@@ -39,6 +39,7 @@
 /*=============================================================================
 	Preprocessor settings
 =============================================================================*/
+#pragma once
 
 #include "ReShade.fxh"
 
@@ -131,6 +132,19 @@ uniform int HELP1 <
                  "1: Use normals from iMMERSE Launchpad (far slower)\n"
                  "   This allows to use Launchpad's smooth normals feature.";
 >;
+
+texture2D pattern_texture < source = "cross-hatch-pattern.png";
+> 
+{
+  Width = BUFFER_WIDTH; 
+  Height = BUFFER_HEIGHT; 
+  Format = RGBA8; 
+};
+
+sampler2D pattern_sampler
+{
+  Texture = pattern_texture;
+};
 
 /*
 uniform float4 tempF1 <
@@ -797,6 +811,14 @@ void Filter2PS(in VSOUT i, out float4 o : SV_Target0)
     color = sqrt(color); 
 
     o = MXAO_DEBUG_VIEW_ENABLE ? float4(mxao, mxao, mxao, 1) : float4(color, 1);
+    
+    /* 
+    [branch] 
+    if (mxao < 0.75)
+        o = tex2D(pattern_sampler, i.uv / 2.0);
+    else
+        o = float4(color, 1);
+    */
 }
 
 float4 PS(float4 vpos : SV_Position, float2 uv : TexCoord) : SV_Target {
