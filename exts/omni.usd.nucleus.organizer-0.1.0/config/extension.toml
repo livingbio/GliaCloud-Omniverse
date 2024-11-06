@@ -1,6 +1,6 @@
 [package]
-# Semantic Versionning is used: https://semver.org/
-version = "1.0.0"
+# Semantic Versioning is used: https://semver.org/
+version = "0.1.0"
 
 # The title and description fields are primarily for displaying extension info in UI
 title = "Simple UI Extension Template"
