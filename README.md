@@ -1,4 +1,6 @@
-# *Omniverse Kit* Extensions Project Template
+# USD Nucleus Organizer extension for NVIDIA Omniverse
+
+![Preview](exts/omni.usd.nucleus.organizer-0.1.0/data/preview.png)
 
 This project is to standardize the asset import process for GliaCloud's R&D purposes (currently only for internal use).
 
@@ -16,10 +18,11 @@ Namely, it will:
 5. Navigate to the Third Party tab of the Extensions Manager and find the newly-added `omni.usd.nucleus.organizer` extension. Toggle on the extension and check 'Autoload' if desired.
 
 ## Run tests
-TBD
+TODO:
 
 ## Import and convert files
 
+TODO:
 current code references:
     omni.kit.tool.asset_importer
     omni.kit.property.usd

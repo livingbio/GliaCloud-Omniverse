@@ -6,7 +6,6 @@ import carb
 import asyncio
 from functools import partial
 
-import omni.kit.asset_converter as converter
 from .window import USDNucleusOrganizerWindow
 
 # def progress_callback(current_step: int, total: int):
