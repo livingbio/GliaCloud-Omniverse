@@ -8,7 +8,6 @@ Namely, it will:
 2. Create Nucleus (or USDSearch) tags using an automated method (TBD).
 3. Place the asset at the desired path within our Nucleus server.
 
-
 ## Enable extension
 1. Fork and clone this repo, for example in `C:\Users\gliacloud\Documents\Omniverse-Projects\usd-nucleus-organizer`.
 2. In the Omniverse App, open Extension Manager: Window → Extensions.
@@ -18,4 +17,10 @@ Namely, it will:
 
 ## Run tests
 TBD
+
+## Import and convert files
+
+current code references:
+    omni.kit.tool.asset_importer
+    omni.kit.property.usd
 

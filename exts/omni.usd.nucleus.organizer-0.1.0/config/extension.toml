@@ -9,7 +9,7 @@ version = "0.1.0"
 title = "USD Organizer in Nucleus"
 description = "An extension to standardize asset imports and tagging into Omniverse for GliaCloud."
 
-authors = ["GliaCloud", "Amy Liu <liu.amy05@gmail.com>"]
+authors = ["GliaCloud"]
 
 # Path (relative to the root) or content of readme markdown file for UI.
 readme  = "docs/README.md"
@@ -24,7 +24,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-extension-template"
 category = "other"
 
 # Keywords for the extension
-keywords = ["usd", "nucleus", "experience", "window"]
+keywords = ["usd", "nucleus", "experience", "tool", "window", "tagging", "automation"]
 
 # Icon to show in the extension manager
 icon = "data/icon.png"
