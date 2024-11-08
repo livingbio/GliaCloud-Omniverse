@@ -1,6 +1,6 @@
 import omni.ui as ui
 import carb
-from .asset_format import CustomAssetFormatter
+from .asset_import import CustomAssetImporter
 
 class USDNucleusOrganizerWindow(ui.Window):
     # TODO: model delegateZ
@@ -18,7 +18,7 @@ class USDNucleusOrganizerWindow(ui.Window):
         """
         
         # TODO: figure out where to instantiate this
-        i = CustomAssetFormatter()
+        i = CustomAssetImporter()
     
         self._count = 0
 
