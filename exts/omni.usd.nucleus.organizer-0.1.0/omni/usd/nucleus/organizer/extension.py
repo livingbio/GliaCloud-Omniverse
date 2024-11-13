@@ -5,6 +5,7 @@ import omni.kit.ui
 import carb
 import asyncio
 from functools import partial
+from pathlib import Path
 
 from .window import USDNucleusOrganizerWindow
 from .asset_import import CustomAssetImporter
@@ -23,6 +24,17 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
     # TODO: better comments & make sure functions are all named properly with _
     def on_startup(self, ext_id):
         carb.log_info("Extension startup")
+        
+        # query extension path and derive data path
+        manager = omni.kit.app.get_app().get_extension_manager()
+        ext_path = Path(manager.get_extension_path(ext_id))
+        data_path = ext_path.joinpath("data")
+        
+        # store extension info in Carbonite
+        settings = carb.settings.get_settings()
+        settings.set("exts/omni.usd.nucleus.organizer/curr_ext_id", str(ext_id))
+        settings.set("exts/omni.usd.nucleus.organizer/curr_ext_path", str(ext_path))
+        settings.set("exts/omni.usd.nucleus.organizer/curr_data_path", str(data_path))
 
         # Registers the callback to create our window in omni.ui. Useful for if we want to use QuickLayout.
         ui.Workspace.set_show_window_fn(USDNucleusOrganizerExtension.WINDOW_NAME, partial(self.show_window, None))
@@ -38,8 +50,6 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         self._custom_importer = CustomAssetImporter()
         omni.kit.tool.asset_importer.register_importer(self._custom_importer)
         
-        
-
         ui.Workspace.show_window(USDNucleusOrganizerExtension.WINDOW_NAME)
         
     def on_shutdown(self):

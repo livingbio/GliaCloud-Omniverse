@@ -43,6 +43,11 @@ preview_image = "data/preview.png"
 [[python.module]]
 name = "omni.usd.nucleus.organizer"
 
+[settings.exts."omni.usd.nucleus.organizer"]
+curr_ext_id = ""
+curr_ext_path = ""
+curr_data_path = ""
+
 [[test]]
 # Extra dependencies only to be used during test run
 dependencies = [

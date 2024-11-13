@@ -2,18 +2,24 @@ import omni.kit.tool.asset_importer as ai
 import omni.ui as ui
 import omni.kit.app
 import omni.kit.asset_converter as asset_converter
+
+
 import asyncio
 import carb
-
 from typing import List, Union, Dict
+from pathlib import Path
 
 def progress_callback(current_step: int, total: int):
     # Show progress
     print(f"{current_step} of {total}")
 
 async def convert(input_asset_path, output_asset_path):
+    context = asset_converter.AssetConverterContext()
+    context.ignore_light = True
+    context.use_meter_as_world_unit = True
+    
     task_manager = asset_converter.get_instance()
-    task = task_manager.create_converter_task(input_asset_path, output_asset_path, progress_callback)
+    task = task_manager.create_converter_task(input_asset_path, output_asset_path, progress_callback, context)
     success = await task.wait_until_finished()
     if not success:
         carb.log_error(task.get_status())
@@ -79,9 +85,11 @@ class CustomAssetImporter(ai.AbstractImporterDelegate):
                 
             ui.Spacer(height=15)
             
-            input_path = f"C:/Users/gliacloud/Documents/Omniverse-Projects/usd-nucleus-organizer/exts/omni.usd.nucleus.organizer-0.1.0/omni/usd/nucleus/organizer/tests/simple_sphere.obj"
-            output_path = f"C:/Users/gliacloud/Documents/Omniverse-Projects/usd-nucleus-organizer/exts/omni.usd.nucleus.organizer-0.1.0/omni/usd/nucleus/organizer/tests/simple_sphere.usd"
-            
+            data_path = Path(carb.settings.get_settings().get("exts/omni.usd.nucleus.organizer/curr_data_path"))
+            input_path = str(data_path.joinpath("floor_lamp_1.fbx"))
+            output_path = str(data_path.joinpath("output_floor_lamp_1.usd"))
+
+    
             ui.Button("Submit", width=ui.Percent(0.5), clicked_fn=lambda: asyncio.ensure_future(convert(input_path, output_path)))
             ui.Spacer(height=15)
                 
