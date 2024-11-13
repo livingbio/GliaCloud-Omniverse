@@ -9,6 +9,64 @@ import carb
 from typing import List, Union, Dict
 from pathlib import Path
 
+def simple_scale_object():
+    context = omni.usd.get_context()
+    stage = context.get_stage()
+    
+    curr_default_prim = stage.GetDefaultPrim()
+    curr_default_prim_path = str(curr_default_prim.GetPath())
+    
+    # get min and max points for bounding box of default prim
+    min_coords, max_coords = context.compute_path_world_bounding_box(curr_default_prim_path)
+    
+    # calculate size of bounding box
+    x_dist = max_coords[0] - min_coords[0]
+    y_dist = max_coords[1] - min_coords[1]
+    z_dist = max_coords[2] - min_coords[2]
+    
+    # if model appears to have incorrect units, scale default prim.
+    largest_dimension = max(x_dist, y_dist, z_dist)
+    if largest_dimension < 0.1:
+        if scale_attr.IsValid():
+            scale_attr = curr_default_prim.GetAttribute('xformOp:scale')
+            curr_scale = scale_attr.Get()
+            new_scale = (curr_scale[0] * 100, curr_scale[1] * 100, curr_scale[2] * 100)
+            scale_attr.Set(new_scale)
+            
+    
+# def get_bounding_box_dimensions(prim_path: str):
+#     min_coords, max_coords = get_coords_from_bbox(prim_path)
+#     length = max_coords[0] - min_coords[0]
+#     width = max_coords[1] - min_coords[1]
+#     height = max_coords[2] - min_coords[2]
+#     return length, width, height
+
+# def scale_object_if_needed(prim_path):
+#     stage = omni.usd.get_context().get_stage()
+
+#     length, width, height = get_bounding_box_dimensions(prim_path)
+    
+#     carb.log_warn(length)
+#     largest_dimension = max(length, width, height)
+
+#     if largest_dimension < 10:
+#         prim = stage.GetPrimAtPath(prim_path)
+
+#         # HACK: All Get Attribute Calls need to check if the attribute exists and add it if it doesn't
+#         if prim.IsValid():
+#             scale_attr = prim.GetAttribute('xformOp:scale')
+#             if scale_attr.IsValid():
+#                 current_scale = scale_attr.Get()
+#                 new_scale = (current_scale[0] * 100, current_scale[1] * 100, current_scale[2] * 100)
+#                 scale_attr.Set(new_scale)
+#                 carb.log_info(f"Scaled object by 100 times: {prim_path}")
+#             else:
+#                 carb.log_info(f"Scale attribute not found for prim at path: {prim_path}")
+#         else:
+#             carb.log_info(f"Invalid prim at path: {prim_path}")
+#     else:
+#         carb.log_info(f"No scaling needed for object: {prim_path}")
+
 def progress_callback(current_step: int, total: int):
     # Show progress
     print(f"{current_step} of {total}")
@@ -89,6 +147,7 @@ class CustomAssetImporter(ai.AbstractImporterDelegate):
             input_path = str(data_path.joinpath("floor_lamp_1.fbx"))
             output_path = str(data_path.joinpath("output_floor_lamp_1.usd"))
 
+            simple_scale_object()
     
             ui.Button("Submit", width=ui.Percent(0.5), clicked_fn=lambda: asyncio.ensure_future(convert(input_path, output_path)))
             ui.Spacer(height=15)
