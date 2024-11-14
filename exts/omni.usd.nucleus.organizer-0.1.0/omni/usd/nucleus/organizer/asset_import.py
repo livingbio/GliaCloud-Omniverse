@@ -66,8 +66,10 @@ class CustomAssetImporter(ai.AbstractImporterDelegate):
             ".*\\.obj$",
             ".*\\.gltf$",
             ".*\\.*glb$",
-            ".*\\.usdc$",
             ".*\\.usda$",
+            ".*\\.usdc$",
+            ".*\\.usdz$",
+            ".*\\.usd$",
         ]
 
         self._descriptions = [
@@ -77,7 +79,8 @@ class CustomAssetImporter(ai.AbstractImporterDelegate):
             "glb Files (*.glb)",
             "USDA (human-readable format) Files (*.usda)",
             "USDC (binary format) Files (*.usdc)",
-            "USD Files (with incorrect properties (*.usd)",
+            "USDZ (compressed, unencrypted format) (*.usdz)"
+            "USD Files (with incorrect properties) (*.usd)",
         ]
 
     @property

@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .window import USDNucleusOrganizerWindow
 from .asset_import import CustomAssetImporter
+from .file_picker_window import CustomFilePickerWindow
 
 from omni.kit.window.filepicker import FilePickerDialog
 
@@ -27,10 +28,12 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
     # TODO: ext_id store somewhere
     # TODO: better comments & make sure functions are all named properly with _
     def on_startup(self, ext_id):
-        carb.log_info("Extension startup")
-        
         global _global_instance
         _global_instance = self
+        
+        self._window = None
+        self._menu = None
+        self._file_picker_window = None
         
         # query extension path and derive data path
         manager = omni.kit.app.get_app().get_extension_manager()
@@ -47,7 +50,6 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         ui.Workspace.set_show_window_fn(USDNucleusOrganizerExtension.WINDOW_NAME, partial(self.show_window, None))
 
         # Adds our extension window to the application menu under MENU_PATH
-        # def add_item(menu_path: str, on_click: Callable=None, toggle: bool=False, priority: int=0, value: bool=False, enabled: bool=True, original_svg_color: bool=False, auto_release=True)
         editor_menu = omni.kit.ui.get_editor_menu()
         if editor_menu:
             self._menu = editor_menu.add_item(
@@ -55,13 +57,11 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
             )
             
         # register objects
-        self._custom_importer = CustomAssetImporter()
+        # self.custom_importer = CustomAssetImporter()
+        
+        self.custom_file_picker = CustomFilePickerWindow("Custom Filepicker")
         
         ui.Workspace.show_window(USDNucleusOrganizerExtension.WINDOW_NAME)
-        
-        # dialog = FilePickerDialog("Demo Filepicker")
-        
-        # dialog.show()
         
     def on_shutdown(self):
         global _global_instance
@@ -73,9 +73,14 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         if self._menu:
             self._menu = None
         
-        if self._window:
+        if hasattr(self, "_window") and self._window:
             self._window.destroy()
             self._window = None
+            
+        if self.custom_file_picker:
+            self.custom_file_picker.destroy()
+            self.custom_file_picker = None
+            
 
     def _set_menu(self, value):
         # Set the checkmark in the menu that shows whether this window is visible or not
@@ -86,7 +91,7 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
     async def _destroy_window_async(self):
         # wait one frame, this is due to the one frame defer in Window::_moveToMainOSWindow()
         await omni.kit.app.get_app().next_update_async()
-        if self._window:
+        if hasattr(self, "_window") and self._window:
             self._window.destroy()
             self._window = None
 
@@ -101,10 +106,9 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         # _menu_path is argument set automatically by EditorMenu functionalities
         # show is true if the window should be shown. set automatically by our registered callback function
         if show:
-            self._window = USDNucleusOrganizerWindow(USDNucleusOrganizerExtension.WINDOW_NAME, \
-                delegate=self._custom_importer, width=300, height=300)
+            self._window = USDNucleusOrganizerWindow(USDNucleusOrganizerExtension.WINDOW_NAME)
             self._window.set_visibility_changed_fn(self._visibility_changed_fn)
-        elif self._window:
+        elif hasattr(self, "_window") and self._window:
             self._window.visible = False
             
     @staticmethod
