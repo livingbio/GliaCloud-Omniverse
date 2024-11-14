@@ -9,12 +9,16 @@ from pathlib import Path
 
 from .window import USDNucleusOrganizerWindow
 from .asset_import import CustomAssetImporter
-import omni.kit.tool.asset_importer
+
+from omni.kit.window.filepicker import FilePickerDialog
+
+_global_instance = None
 
 # Any class derived from `omni.ext.IExt` in top level module (defined in `python.modules` of `extension.toml`) will be
 # instantiated when extension gets enabled and `on_startup(ext_id)` will be called. Later when extension gets disabled
 # on_shutdown() is called.
 class USDNucleusOrganizerExtension(omni.ext.IExt):
+    
     WINDOW_NAME = "USD Nucleus Organizer"
     MENU_PATH = f"Window/GliaCloud Custom/{WINDOW_NAME}"
 
@@ -24,6 +28,9 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
     # TODO: better comments & make sure functions are all named properly with _
     def on_startup(self, ext_id):
         carb.log_info("Extension startup")
+        
+        global _global_instance
+        _global_instance = self
         
         # query extension path and derive data path
         manager = omni.kit.app.get_app().get_extension_manager()
@@ -40,55 +47,67 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         ui.Workspace.set_show_window_fn(USDNucleusOrganizerExtension.WINDOW_NAME, partial(self.show_window, None))
 
         # Adds our extension window to the application menu under MENU_PATH
+        # def add_item(menu_path: str, on_click: Callable=None, toggle: bool=False, priority: int=0, value: bool=False, enabled: bool=True, original_svg_color: bool=False, auto_release=True)
         editor_menu = omni.kit.ui.get_editor_menu()
         if editor_menu:
             self._menu = editor_menu.add_item(
-                USDNucleusOrganizerExtension.MENU_PATH, self.show_window, toggle=True, value=True
+                USDNucleusOrganizerExtension.MENU_PATH, on_click=self.show_window, toggle=True, value=True
             )
             
         # register objects
         self._custom_importer = CustomAssetImporter()
-        omni.kit.tool.asset_importer.register_importer(self._custom_importer)
         
         ui.Workspace.show_window(USDNucleusOrganizerExtension.WINDOW_NAME)
         
+        # dialog = FilePickerDialog("Demo Filepicker")
+        
+        # dialog.show()
+        
     def on_shutdown(self):
-        self._menu = None
+        global _global_instance
+        _global_instance = None
+        
+        # Deregister the function that shows the window from omni.ui
+        ui.Workspace.set_show_window_fn(USDNucleusOrganizerExtension.WINDOW_NAME, None)
+        
+        if self._menu:
+            self._menu = None
+        
         if self._window:
             self._window.destroy()
             self._window = None
 
-        # Deregister the function that shows the window from omni.ui
-        ui.Workspace.set_show_window_fn(USDNucleusOrganizerExtension.WINDOW_NAME, None)
-
     def _set_menu(self, value):
-        """Set the menu to create this window on and off"""
+        # Set the checkmark in the menu that shows whether this window is visible or not
         editor_menu = omni.kit.ui.get_editor_menu()
         if editor_menu:
             editor_menu.set_value(USDNucleusOrganizerExtension.MENU_PATH, value)
 
     async def _destroy_window_async(self):
-        # wait one frame, this is due to the one frame defer
-        # in Window::_moveToMainOSWindow()
+        # wait one frame, this is due to the one frame defer in Window::_moveToMainOSWindow()
         await omni.kit.app.get_app().next_update_async()
         if self._window:
             self._window.destroy()
             self._window = None
 
-    def _visiblity_changed_fn(self, visible):
+    def _visibility_changed_fn(self, visible):
         # Called when the user pressed "X"
         self._set_menu(visible)
         if not visible:
-            # Destroy the window, since we are creating new window
-            # in show_window
+            # Destroy the window, since we are creating new window in show_window
             asyncio.ensure_future(self._destroy_window_async())
 
-    def show_window(self, menu, value):
-        # value is true if the window should be shown. set automatically by our registered callback function
-        if value:
-            self._window = USDNucleusOrganizerWindow(USDNucleusOrganizerExtension.WINDOW_NAME, width=300, height=300)
-            
-            # handles change in visibility of window gracefully
-            self._window.set_visibility_changed_fn(self._visiblity_changed_fn)
+    def show_window(self, _menu_path, show: bool):
+        # _menu_path is argument set automatically by EditorMenu functionalities
+        # show is true if the window should be shown. set automatically by our registered callback function
+        if show:
+            self._window = USDNucleusOrganizerWindow(USDNucleusOrganizerExtension.WINDOW_NAME, \
+                delegate=self._custom_importer, width=300, height=300)
+            self._window.set_visibility_changed_fn(self._visibility_changed_fn)
         elif self._window:
             self._window.visible = False
+            
+    @staticmethod
+    def get_instance():
+        global _global_instance
+        return _global_instance

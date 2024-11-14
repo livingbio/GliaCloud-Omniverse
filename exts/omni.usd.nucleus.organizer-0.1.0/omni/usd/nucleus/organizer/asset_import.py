@@ -32,40 +32,6 @@ def simple_scale_object():
             curr_scale = scale_attr.Get()
             new_scale = (curr_scale[0] * 100, curr_scale[1] * 100, curr_scale[2] * 100)
             scale_attr.Set(new_scale)
-            
-    
-# def get_bounding_box_dimensions(prim_path: str):
-#     min_coords, max_coords = get_coords_from_bbox(prim_path)
-#     length = max_coords[0] - min_coords[0]
-#     width = max_coords[1] - min_coords[1]
-#     height = max_coords[2] - min_coords[2]
-#     return length, width, height
-
-# def scale_object_if_needed(prim_path):
-#     stage = omni.usd.get_context().get_stage()
-
-#     length, width, height = get_bounding_box_dimensions(prim_path)
-    
-#     carb.log_warn(length)
-#     largest_dimension = max(length, width, height)
-
-#     if largest_dimension < 10:
-#         prim = stage.GetPrimAtPath(prim_path)
-
-#         # HACK: All Get Attribute Calls need to check if the attribute exists and add it if it doesn't
-#         if prim.IsValid():
-#             scale_attr = prim.GetAttribute('xformOp:scale')
-#             if scale_attr.IsValid():
-#                 current_scale = scale_attr.Get()
-#                 new_scale = (current_scale[0] * 100, current_scale[1] * 100, current_scale[2] * 100)
-#                 scale_attr.Set(new_scale)
-#                 carb.log_info(f"Scaled object by 100 times: {prim_path}")
-#             else:
-#                 carb.log_info(f"Scale attribute not found for prim at path: {prim_path}")
-#         else:
-#             carb.log_info(f"Invalid prim at path: {prim_path}")
-#     else:
-#         carb.log_info(f"No scaling needed for object: {prim_path}")
 
 def progress_callback(current_step: int, total: int):
     # Show progress
@@ -75,6 +41,7 @@ async def convert(input_asset_path, output_asset_path):
     context = asset_converter.AssetConverterContext()
     context.ignore_light = True
     context.use_meter_as_world_unit = True
+    context.convert_fbx_to_z_up = True
     
     task_manager = asset_converter.get_instance()
     task = task_manager.create_converter_task(input_asset_path, output_asset_path, progress_callback, context)
@@ -147,7 +114,18 @@ class CustomAssetImporter(ai.AbstractImporterDelegate):
             input_path = str(data_path.joinpath("floor_lamp_1.fbx"))
             output_path = str(data_path.joinpath("output_floor_lamp_1.usd"))
 
-            simple_scale_object()
+            # simple_scale_object()
+            
+            # from pxr import Usd
+            
+            # stage = Usd.Stage.Open(output_path)
+            # prim = stage.GetDefaultPrim()
+            # carb.log_warn(prim.GetPrimPath())
+            
+            # usd_context = omni.usd.create_context('second')
+            
+            # result, error_str = usd_context.attach_stage_async(stage)
+            
     
             ui.Button("Submit", width=ui.Percent(0.5), clicked_fn=lambda: asyncio.ensure_future(convert(input_path, output_path)))
             ui.Spacer(height=15)
