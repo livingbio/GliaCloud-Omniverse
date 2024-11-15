@@ -113,7 +113,7 @@ class CustomAssetImporter(ai.AbstractImporterDelegate):
                 
             ui.Spacer(height=15)
             
-            data_path = Path(carb.settings.get_settings().get("exts/omni.usd.nucleus.organizer/curr_data_path"))
+            data_path = Path(carb.settings.get_settings().get("exts/omni.usd.nucleus.organizer/_data_path"))
             input_path = str(data_path.joinpath("floor_lamp_1.fbx"))
             output_path = str(data_path.joinpath("output_floor_lamp_1.usd"))
 

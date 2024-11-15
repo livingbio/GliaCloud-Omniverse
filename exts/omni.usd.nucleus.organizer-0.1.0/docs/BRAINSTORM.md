@@ -41,3 +41,18 @@ https://forum.aousd.org/t/api-basics-for-designing-a-manage-edits-editor-for-usd
     - move back sufficiently for bounding box to fit inside "frustum"
 
 https://forums.developer.nvidia.com/t/modifying-usdz-files-in-omniverse-painful-cannot-save-the-result-in-a-way-that-works/297290/3
+
+
+services -- things that don't need UI: 
+1. import & convert asset
+2. optimize scene
+
+window -- things that do need UI:
+1. OrganizedUSDModel
+    - Bounding Box Dimensions
+    - Screenshot of pivot
+    - Pivot position
+
+
+TagBuilder:
+
