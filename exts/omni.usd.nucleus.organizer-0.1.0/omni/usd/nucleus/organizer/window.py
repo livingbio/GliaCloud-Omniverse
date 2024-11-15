@@ -6,7 +6,6 @@ import carb
 from .file_picker_window import CustomFilePickerWindow
 
 
-
 class USDNucleusOrganizerWindow(ui.Window):
     WINDOW_STATES = [
         "startup",
@@ -67,7 +66,7 @@ class USDNucleusOrganizerWindow(ui.Window):
     def _build_startup_frame(self):
         with ui.ScrollingFrame():
             with ui.VStack():
-                ui.Button("Get Started in start", 
+                ui.Button("GET STARTED", 
                           clicked_fn=self.file_picker_window.show, 
                           height=ui.Percent(0.25))
                 
