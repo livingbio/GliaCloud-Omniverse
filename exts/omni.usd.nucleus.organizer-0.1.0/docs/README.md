@@ -1,3 +1,3 @@
-# Simple UI Extension Template
+# Omniverse USD Nucleus Organizer
 
-The simplest python extension example. Use it as a starting point for your extensions.
+An extension to standardize asset imports and tagging into Omniverse for GliaCloud
