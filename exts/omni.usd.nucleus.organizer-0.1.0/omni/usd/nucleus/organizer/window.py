@@ -4,6 +4,7 @@ import omni.kit.app
 import carb
 
 from .file_picker_window import CustomFilePickerWindow
+from .organized_asset_model import OrganizedAssetModel
 
 
 class USDNucleusOrganizerWindow(ui.Window):
@@ -14,33 +15,44 @@ class USDNucleusOrganizerWindow(ui.Window):
         "finished"
     ]
     
-    def __init__(self, title: str):
-        super().__init__(title)
+    @staticmethod
+    def _change_window_state(new_state: str =""):
+        settings = carb.settings.get_settings()
+        settings.set("exts/omni.usd.nucleus.organizer/window_state", new_state)
+        carb.log_warn(f'Window state changed to {settings.get("exts/omni.usd.nucleus.organizer/window_state")}')
+        
+    
+    def __init__(self, title: str, **kwargs):
+        super().__init__(title, **kwargs)
 
         self.selected_file_path = ""
-        self.file_picker_window = CustomFilePickerWindow("Select File")
-        self.file_picker_window.set_click_apply_handler(self.set_selected_file_path)
+        self.file_picker_window = CustomFilePickerWindow("Select File", self._on_file_submitted)
         
         self._state_subscription = omni.kit.app.SettingChangeSubscription(
             "exts/omni.usd.nucleus.organizer/window_state", self._on_window_state_changed)
         
-        settings = carb.settings.get_settings()
-        settings.set("exts/omni.usd.nucleus.organizer/window_state", "startup")
+        USDNucleusOrganizerWindow._change_window_state("startup")
         
     
     def destroy(self):
+        self.selected_file_path = ""
         self.file_picker_window = None
         
         # setting to None to unsubscribe (i.e. not recieve callbacks anymore)
         self._state_subscription = None
         
-        settings = carb.settings.get_settings()
-        settings.set("exts/omni.usd.nucleus.organizer/window_state", "")
+        USDNucleusOrganizerWindow._change_window_state("startup")
         
         super().destroy()
-        
+    
     def _on_window_state_changed(self, value: carb.dictionary.Item, change_type: carb.settings.ChangeEventType) -> None:
         _state = str(value)
+        
+        if _state not in USDNucleusOrganizerWindow.WINDOW_STATES:
+            if _state == "":
+                _state = '""'
+            carb.log_warn(f'State is {_state}')
+            return
         
         if _state == "startup":
             self.frame.set_build_fn(self._build_startup_frame)
@@ -49,19 +61,20 @@ class USDNucleusOrganizerWindow(ui.Window):
             
         self.frame.call_build_fn()
     
-    def set_selected_file_path(self, file_name: str, dir_name: str) -> None:
-        if not file_name or file_name == "":
-            carb.log_warn("Select a valid file!")
-            return
-        self.file_picker_window.hide()
-        settings = carb.settings.get_settings()
-        settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
-        
+    def set_selected_file_path(self, file_path: str) -> None:
+        self.selected_file_path = file_path
+        carb.log_warn(f'Selected file path is {self.selected_file_path}')
+    
+    def _on_file_submitted(self, file_name: str, dir_name: str) -> None:
         dir_name = dir_name.strip()
         if dir_name and not dir_name.endswith("/"):
             dir_name += "/"
-        self.selected_file_path = f"{dir_name}{file_name}"
-        carb.log_warn(f'Selected file path is {self.selected_file_path}')
+        self.set_selected_file_path(f"{dir_name}{file_name}")
+        
+        new_asset_model = OrganizedAssetModel(self.selected_file_path)
+        
+        settings = carb.settings.get_settings()
+        settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
         
     def _build_startup_frame(self):
         with ui.ScrollingFrame():
@@ -72,3 +85,7 @@ class USDNucleusOrganizerWindow(ui.Window):
                 
     def _build_confirmation_frame(self):
         ui.Label(self.selected_file_path)
+        
+        
+        
+        

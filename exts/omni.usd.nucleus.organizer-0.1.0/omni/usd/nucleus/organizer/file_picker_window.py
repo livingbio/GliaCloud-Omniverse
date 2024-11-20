@@ -4,6 +4,9 @@ from omni.kit.widget.filebrowser import FileBrowserItem
 import carb
 import os
 
+from typing import Callable, Type
+from functools import partial
+
 class CustomFilePickerWindow(FilePickerDialog):
     EXTENSION_OPTIONS = [
         ("All Supported Formats", "*.fbx, *.obj, ..."),          
@@ -17,13 +20,15 @@ class CustomFilePickerWindow(FilePickerDialog):
         ("*.usdz", "USDZ (compressed) Format"),
     ]
       
-    def __init__(self, title: str):
+    def __init__(self, title: str, external_callback: Callable = lambda f,d: None):
         super().__init__(title, 
                          file_extension_options=CustomFilePickerWindow.EXTENSION_OPTIONS,
                          item_filter_fn=lambda item: self._filter_out_files(item),
                          click_cancel_handler=lambda _fn, _dn: self.hide(),
                          apply_button_label="Submit"
                          )
+        
+        self._set_click_apply_handler_internal(external_callback)
         
         self.hide()
         
@@ -54,23 +59,18 @@ class CustomFilePickerWindow(FilePickerDialog):
         
         return self._match_item_path_to_filter(item.path)
         
-    def _apply_handler(self, file_name: str, dir_name: str) -> None:
-        # don't continue if selection is directory or nothing
+    def _click_apply_handler_internal(self, external_callback: Callable, file_name: str, dir_name: str) -> None:
+        
         if not file_name or file_name == "":
+            carb.log_warn("Select a valid file!")
             return
-        
+            
         self.hide()
-
-        dir_name = dir_name.strip()
-        if dir_name and not dir_name.endswith("/"):
-            dir_name += "/"
         
-        full_path = f"{dir_name}{file_name}"
+        external_callback(file_name, dir_name)
         
-        
-        carb.log_warn(f'Selected file path is {self.selected_file_path}')
-        
-        
+    def _set_click_apply_handler_internal(self, external_callback: Callable) -> None:
+        self.set_click_apply_handler(partial(self._click_apply_handler_internal, external_callback))
         
     
     

@@ -95,7 +95,7 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         # _menu_path is argument set automatically by EditorMenu functionalities
         # show is true if the window should be shown. set automatically by our registered callback function
         if show:
-            self._window = USDNucleusOrganizerWindow(USDNucleusOrganizerExtension.WINDOW_NAME)
+            self._window = USDNucleusOrganizerWindow(USDNucleusOrganizerExtension.WINDOW_NAME, width=200, height=200)
             self._window.set_visibility_changed_fn(self._visibility_changed_fn)
         elif self._window:
             self._window.visible = False
