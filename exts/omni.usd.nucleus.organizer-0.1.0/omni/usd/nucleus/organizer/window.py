@@ -31,6 +31,8 @@ class USDNucleusOrganizerWindow(ui.Window):
         self._state_subscription = omni.kit.app.SettingChangeSubscription(
             "exts/omni.usd.nucleus.organizer/window_state", self._on_window_state_changed)
         
+        self.curr_asset_model = None
+        
         USDNucleusOrganizerWindow._change_window_state("startup")
         
     
@@ -42,6 +44,8 @@ class USDNucleusOrganizerWindow(ui.Window):
         self._state_subscription = None
         
         USDNucleusOrganizerWindow._change_window_state("startup")
+        
+        self.curr_asset_model = None
         
         super().destroy()
     
@@ -71,8 +75,8 @@ class USDNucleusOrganizerWindow(ui.Window):
             dir_name += "/"
         self.set_selected_file_path(f"{dir_name}{file_name}")
         
-        new_asset_model = OrganizedAssetModel(self.selected_file_path)
-        
+        self.curr_asset_model = OrganizedAssetModel(self.selected_file_path)
+
         settings = carb.settings.get_settings()
         settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
         
@@ -84,7 +88,11 @@ class USDNucleusOrganizerWindow(ui.Window):
                           height=ui.Percent(0.25))
                 
     def _build_confirmation_frame(self):
-        ui.Label(self.selected_file_path)
+        with ui.ScrollingFrame():
+            with ui.VStack():
+                ui.Button("CONFIRM & CONVERT", clicked_fn=self.curr_asset_model.apply_conversion, height=ui.Percent(0.25))
+                
+                ui.Button("OPTIMIZE", clicked_fn=self.curr_asset_model.apply_optimization, height=ui.Percent(0.25))
         
         
         
