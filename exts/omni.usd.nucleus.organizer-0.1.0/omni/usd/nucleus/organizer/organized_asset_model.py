@@ -1,5 +1,6 @@
 import omni.ui as ui
 import omni.kit.tool.asset_importer as ai
+import omni.asset_validator.core as av
 
 from typing import List
 import carb
@@ -31,7 +32,7 @@ class OrganizedAssetModel():
         options_manager._light_checkbox = OrganizedAssetModel.set_checkbox_value(False) # not default
         options_manager._bones_checkbox = OrganizedAssetModel.set_checkbox_value(True)
         options_manager._smooth_normals_checkbox = OrganizedAssetModel.set_checkbox_value(True)
-        options_manager._meters_as_world_unit_checkbox = OrganizedAssetModel.set_checkbox_value(True)
+        options_manager._meters_as_world_unit_checkbox = OrganizedAssetModel.set_checkbox_value(False) # not default
         options_manager._create_world_as_default_root_prim_checkbox = OrganizedAssetModel.set_checkbox_value(True)
         options_manager._merge_all_meshes_checkbox = OrganizedAssetModel.set_checkbox_value(False)
         options_manager._rotation_checkbox = OrganizedAssetModel.set_checkbox_value(True)
@@ -51,8 +52,29 @@ class OrganizedAssetModel():
         
         asset_importer_ext._convert_file([self._input_path])
         
-    def apply_optimization(self):
-        # open file
+    def apply_standardization(self):
+        
+        # engine = av.ValidationEngine()
+        
+        # settings = carb.settings.get_settings()
+        
+        # []
+        
+        # settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
+        # exts."omni.asset_validator.core".enabledRules = ["*"]
+        
+        # # open file
+        # from pxr import Usd
+            
+        # stage = Usd.Stage.Open(self._output_path)
+        # prim = stage.GetDefaultPrim()
+        # carb.log_warn(prim.GetPrimPath())
+        
+        # usd_context = omni.usd.create_context('second')
+        
+        # result, error_str = usd_context.attach_stage_async(stage)
+        
+        return
         
     
     def _set_output_path_callback(self, file_paths: List[str]):

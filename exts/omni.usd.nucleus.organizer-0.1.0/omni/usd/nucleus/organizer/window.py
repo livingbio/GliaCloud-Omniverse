@@ -6,6 +6,8 @@ import carb
 from .file_picker_window import CustomFilePickerWindow
 from .organized_asset_model import OrganizedAssetModel
 
+import omni.asset_validator.core
+
 
 class USDNucleusOrganizerWindow(ui.Window):
     WINDOW_STATES = [
@@ -81,6 +83,26 @@ class USDNucleusOrganizerWindow(ui.Window):
         settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
         
     def _build_startup_frame(self):
+        _enabled_settings = [
+            "KindChecker",
+            "ExtentsChecker",
+            "UsdMaterialBindingApi",
+            "SubdivisionSchemeChecker",
+            "OmniDefaultPrimChecker",
+            
+        ]
+        
+        settings = carb.settings.get_settings()
+        settings.set("exts/omni.asset_validator.core/disabledRules", ["*"])
+        settings.set(
+            "exts/omni.asset_validator.core/enabledRules",
+            ["NormalMapTextureChecker","PrimEncapsulationChecker"]
+        )
+        
+        for category in omni.asset_validator.core.ValidationRulesRegistry.categories():
+            for rule in omni.asset_validator.core.ValidationRulesRegistry.rules(category=category, enabledOnly=True):
+                carb.log_warn(rule.__name__)
+        
         with ui.ScrollingFrame():
             with ui.VStack():
                 ui.Button("GET STARTED", 
@@ -92,7 +114,7 @@ class USDNucleusOrganizerWindow(ui.Window):
             with ui.VStack():
                 ui.Button("CONFIRM & CONVERT", clicked_fn=self.curr_asset_model.apply_conversion, height=ui.Percent(0.25))
                 
-                ui.Button("OPTIMIZE", clicked_fn=self.curr_asset_model.apply_optimization, height=ui.Percent(0.25))
+                ui.Button("OPTIMIZE", clicked_fn=self.curr_asset_model.apply_standardization, height=ui.Percent(0.25))
         
         
         
