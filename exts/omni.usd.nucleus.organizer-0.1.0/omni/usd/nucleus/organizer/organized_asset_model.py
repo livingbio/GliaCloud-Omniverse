@@ -1,10 +1,15 @@
 import omni.ui as ui
 import omni.kit.tool.asset_importer as ai
 import omni.asset_validator.core as av
+from pxr import Usd
+import omni.kit.app as app
 
 from typing import List
 import carb
 import os
+import asyncio
+
+from .asset_validate import RotationChecker
     
 class OrganizedAssetModel():
     
@@ -38,43 +43,55 @@ class OrganizedAssetModel():
         options_manager._rotation_checkbox = OrganizedAssetModel.set_checkbox_value(True)
         
     
-    def __init__(self, input_path):
+    def __init__(self, input_path: str, _engine: av.ValidationEngine):
         self._input_path = input_path
         self._output_path = ""
+        self._engine = _engine
         
-    def apply_conversion(self):
-        asset_importer_ext = ai.AssetImporterExtension.get_instance()
-        built_in_options_manager = asset_importer_ext._importers_manager._builtin_importer._options_builder
+    async def apply_conversion(self):
+        importer = ai.AssetImporterExtension.get_instance()
+        built_in_options_manager = importer._importers_manager._builtin_importer._options_builder
         
         OrganizedAssetModel.set_converter_options(built_in_options_manager)
+
+        settings = carb.settings.get_settings()
+        default_settings_path = settings.get_as_string("/exts/omni.kit.tool.asset_importer/appSettings")
+        directory_ori = settings.get_as_string(f"{default_settings_path}/directory")
+        settings.set(f"{default_settings_path}/directory", "C:/Users/gliacloud/Documents/Omniverse-Projects/usd-nucleus-organizer/exts/omni.usd.nucleus.organizer-0.1.0/data")
         
-        asset_importer_ext.add_import_complete_callback(self._set_output_path_callback)
+        all_asset_paths = [self._input_path]
+
+        importer._on_icon_menu_click([False, False])
+        await app.get_app().next_update_async()
+        await app.get_app().next_update_async()
+        importer._converter_file_picker._on_file_open(all_asset_paths)
+        await asyncio.sleep(5.0)
+        importer._converter_file_picker.destroy()
         
-        asset_importer_ext._convert_file([self._input_path])
+        directory = settings.get_as_string(f"{default_settings_path}/directory")
+        settings.set(f"{default_settings_path}/directory", directory_ori)
+        
+        carb.log_warn("Directory: " + str(directory))
         
     def apply_standardization(self):
         
-        # engine = av.ValidationEngine()
+        carb.log_warn(self._output_path)
         
-        # settings = carb.settings.get_settings()
+        self._engine.enableRule(RotationChecker)
         
-        # []
+        _asset_stage = Usd.Stage.Open(self._output_path)
         
-        # settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
-        # exts."omni.asset_validator.core".enabledRules = ["*"]
+        results = self._engine.validate(_asset_stage)
         
-        # # open file
-        # from pxr import Usd
-            
-        # stage = Usd.Stage.Open(self._output_path)
-        # prim = stage.GetDefaultPrim()
-        # carb.log_warn(prim.GetPrimPath())
+        fixer = av.IssueFixer(asset=_asset_stage)
+        fix_result = fixer.fix(results.issues())
         
-        # usd_context = omni.usd.create_context('second')
+        fixer.save()
+        _asset_stage = None
         
-        # result, error_str = usd_context.attach_stage_async(stage)
+        carb.log_warn(fix_result)
         
-        return
+        
         
     
     def _set_output_path_callback(self, file_paths: List[str]):

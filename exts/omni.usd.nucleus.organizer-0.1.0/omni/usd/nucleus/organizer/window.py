@@ -6,7 +6,9 @@ import carb
 from .file_picker_window import CustomFilePickerWindow
 from .organized_asset_model import OrganizedAssetModel
 
-import omni.asset_validator.core
+import omni.asset_validator.core as av
+
+import asyncio
 
 
 class USDNucleusOrganizerWindow(ui.Window):
@@ -33,9 +35,11 @@ class USDNucleusOrganizerWindow(ui.Window):
         self._state_subscription = omni.kit.app.SettingChangeSubscription(
             "exts/omni.usd.nucleus.organizer/window_state", self._on_window_state_changed)
         
+        USDNucleusOrganizerWindow._change_window_state("startup")
+        
         self.curr_asset_model = None
         
-        USDNucleusOrganizerWindow._change_window_state("startup")
+        self._engine = av.ValidationEngine(initRules=False)
         
     
     def destroy(self):
@@ -77,32 +81,12 @@ class USDNucleusOrganizerWindow(ui.Window):
             dir_name += "/"
         self.set_selected_file_path(f"{dir_name}{file_name}")
         
-        self.curr_asset_model = OrganizedAssetModel(self.selected_file_path)
+        self.curr_asset_model = OrganizedAssetModel(self.selected_file_path, self._engine)
 
         settings = carb.settings.get_settings()
         settings.set("exts/omni.usd.nucleus.organizer/window_state", "confirmation")
         
     def _build_startup_frame(self):
-        _enabled_settings = [
-            "KindChecker",
-            "ExtentsChecker",
-            "UsdMaterialBindingApi",
-            "SubdivisionSchemeChecker",
-            "OmniDefaultPrimChecker",
-            
-        ]
-        
-        settings = carb.settings.get_settings()
-        settings.set("exts/omni.asset_validator.core/disabledRules", ["*"])
-        settings.set(
-            "exts/omni.asset_validator.core/enabledRules",
-            ["NormalMapTextureChecker","PrimEncapsulationChecker"]
-        )
-        
-        for category in omni.asset_validator.core.ValidationRulesRegistry.categories():
-            for rule in omni.asset_validator.core.ValidationRulesRegistry.rules(category=category, enabledOnly=True):
-                carb.log_warn(rule.__name__)
-        
         with ui.ScrollingFrame():
             with ui.VStack():
                 ui.Button("GET STARTED", 
@@ -110,12 +94,16 @@ class USDNucleusOrganizerWindow(ui.Window):
                           height=ui.Percent(0.25))
                 
     def _build_confirmation_frame(self):
+        def apply_conversion_wrapper():
+            asyncio.ensure_future(self.curr_asset_model.apply_conversion())
+            
+        carb.log_warn(self.curr_asset_model)
         with ui.ScrollingFrame():
             with ui.VStack():
-                ui.Button("CONFIRM & CONVERT", clicked_fn=self.curr_asset_model.apply_conversion, height=ui.Percent(0.25))
+                ui.Button("CONFIRM & CONVERT", 
+                          clicked_fn=apply_conversion_wrapper, 
+                          height=ui.Percent(0.25))
                 
                 ui.Button("OPTIMIZE", clicked_fn=self.curr_asset_model.apply_standardization, height=ui.Percent(0.25))
-        
-        
-        
+
         
