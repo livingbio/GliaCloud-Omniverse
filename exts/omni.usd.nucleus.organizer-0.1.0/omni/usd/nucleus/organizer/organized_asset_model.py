@@ -49,29 +49,16 @@ class OrganizedAssetModel():
         self._engine = _engine
         
     async def apply_conversion(self):
-        importer = ai.AssetImporterExtension.get_instance()
-        built_in_options_manager = importer._importers_manager._builtin_importer._options_builder
+        asset_importer_ext = ai.AssetImporterExtension.get_instance()
+        built_in_options_manager = asset_importer_ext._importers_manager._builtin_importer._options_builder
         
         OrganizedAssetModel.set_converter_options(built_in_options_manager)
-
-        settings = carb.settings.get_settings()
-        default_settings_path = settings.get_as_string("/exts/omni.kit.tool.asset_importer/appSettings")
-        directory_ori = settings.get_as_string(f"{default_settings_path}/directory")
-        settings.set(f"{default_settings_path}/directory", "C:/Users/gliacloud/Documents/Omniverse-Projects/usd-nucleus-organizer/exts/omni.usd.nucleus.organizer-0.1.0/data")
         
-        all_asset_paths = [self._input_path]
-
-        importer._on_icon_menu_click([False, False])
-        await app.get_app().next_update_async()
-        await app.get_app().next_update_async()
-        importer._converter_file_picker._on_file_open(all_asset_paths)
-        await asyncio.sleep(5.0)
-        importer._converter_file_picker.destroy()
+        asset_importer_ext._importers_manager._shared_options_builder.set_default_target_folder("C:/Users/gliacloud/Documents/Omniverse-Projects/usd-nucleus-organizer/exts/omni.usd.nucleus.organizer-0.1.0/data")
         
-        directory = settings.get_as_string(f"{default_settings_path}/directory")
-        settings.set(f"{default_settings_path}/directory", directory_ori)
+        asset_importer_ext.add_import_complete_callback(self._set_output_path_callback)
         
-        carb.log_warn("Directory: " + str(directory))
+        asset_importer_ext._convert_file([self._input_path])
         
     def apply_standardization(self):
         

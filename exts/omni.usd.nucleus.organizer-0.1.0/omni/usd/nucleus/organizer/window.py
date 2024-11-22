@@ -93,15 +93,12 @@ class USDNucleusOrganizerWindow(ui.Window):
                           clicked_fn=self.file_picker_window.show, 
                           height=ui.Percent(0.25))
                 
-    def _build_confirmation_frame(self):
-        def apply_conversion_wrapper():
-            asyncio.ensure_future(self.curr_asset_model.apply_conversion())
-            
+    def _build_confirmation_frame(self):        
         carb.log_warn(self.curr_asset_model)
         with ui.ScrollingFrame():
             with ui.VStack():
                 ui.Button("CONFIRM & CONVERT", 
-                          clicked_fn=apply_conversion_wrapper, 
+                          clicked_fn=self.curr_asset_model.apply_conversion, 
                           height=ui.Percent(0.25))
                 
                 ui.Button("OPTIMIZE", clicked_fn=self.curr_asset_model.apply_standardization, height=ui.Percent(0.25))
