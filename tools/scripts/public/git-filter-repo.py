@@ -46,8 +46,6 @@ import textwrap
 
 from datetime import tzinfo, timedelta, datetime
 
-os.chdir(os.path.dirname(sys.argv[0]))
-
 __all__ = ["Blob", "Reset", "FileChange", "Commit", "Tag", "Progress",
            "Checkpoint", "FastExportParser", "ProgressWriter",
            "string_to_date", "date_to_string",
