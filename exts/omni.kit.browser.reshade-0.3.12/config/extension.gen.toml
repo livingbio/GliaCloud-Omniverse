@@ -1,0 +1,6 @@
+[package]
+[package.publish]
+buildNumber = "0.3.12+master.93.e8b7cb47.tc"
+repoName = "kit-reshade-browser"
+kitVersion = "104.0+master.90581.7e6b9494.tc"
+date = 1671729750
