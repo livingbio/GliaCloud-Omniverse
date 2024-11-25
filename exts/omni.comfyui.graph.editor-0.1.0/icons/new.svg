@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="33" height="33" viewBox="0 0 33 33">
+  <g id="add_selection_in_view" data-name="add selection in view" transform="translate(-11594 1168)">
+    <rect id="Rectangle_678" data-name="Rectangle 678" width="33" height="33" transform="translate(11594 -1168)" fill="none"/>
+    <path id="Path_2671" data-name="Path 2671" d="M800.6,574.737l.13.173.022.067.022.085v.2l-.022.085-.022.088-.043.11-.065.087-.132.108-.15.087-.2.022h-3.848l2.021,4.847.045.13.02.11-.02.13-.045.13-.043.11-.087.085-.087.087-.108.065-1.784.762-.13.042-.13.023-.11-.023-.13-.042-.108-.043-.087-.087-.087-.11-.065-.087-1.914-4.607-3.13,3.151-.087.087-.108.065-.13.045-.11.02-.13-.02-.13-.045-.152-.108-.13-.11-.087-.173-.022-.2V564.8l.022-.217.087-.152.13-.153.152-.107.13-.043h.24l.13.043.108.065.087.087L800.6,574.737Z" transform="translate(10824.258 -1729.434)" fill="#c5c5c5" fill-rule="evenodd"/>
+    <path id="Path_2997" data-name="Path 2997" d="M52.98,26.784v2.069l-.021.233-.068.187-.087.185-.112.139-.155.141-.176.091-.178.072-.2.022H47.754v4.511l-.023.211-.043.185-.112.187-.132.139-.132.139-.178.117-.155.046-.221.024h-1.95l-.2-.024-.176-.046-.155-.117-.178-.139-.112-.139-.087-.187-.046-.185-.021-.211V29.922H39.58L39.4,29.9l-.2-.072-.155-.091-.155-.141-.132-.139-.066-.185-.066-.187-.023-.233V26.784l.023-.211.066-.185.066-.187.132-.163.155-.115.155-.117.2-.046.178-.024h4.253V21.2l.021-.209.046-.187.087-.185.112-.163.178-.117.155-.091.176-.072.2-.022h1.95l.221.022.155.072.178.091.132.117.132.163.112.185.043.187.023.209v4.535h4.231l.2.024.178.046.176.117.155.115.112.163.087.187.068.185.021.211Z" transform="translate(11558.086 -1175.885)" fill="#71a376" fill-rule="evenodd"/>
+    <g id="Model" transform="translate(-3699.499 6082.5)">
+      <g id="Group_2430" data-name="Group 2430" transform="translate(0 -53)">
+        <g id="Group_2432" data-name="Group 2432" transform="translate(15318.1 -7195.7)">
+          <line id="Line_501" data-name="Line 501" x2="6.555" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+          <line id="Line_502" data-name="Line 502" y1="6.555" transform="translate(6.555)" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+        </g>
+        <g id="Group_2434" data-name="Group 2434" transform="translate(15301.854 -7166.345) rotate(180)">
+          <line id="Line_501-2" data-name="Line 501" x2="6.555" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+          <line id="Line_502-2" data-name="Line 502" y1="6.555" transform="translate(6.555)" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+        </g>
+        <g id="Group_2433" data-name="Group 2433" transform="translate(15324.654 -7172.9) rotate(90)">
+          <line id="Line_501-3" data-name="Line 501" x2="6.555" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+          <line id="Line_502-3" data-name="Line 502" y1="6.555" transform="translate(6.555)" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+        </g>
+        <g id="Group_2431" data-name="Group 2431" transform="translate(15295.3 -7189.146) rotate(-90)">
+          <line id="Line_501-4" data-name="Line 501" x2="6.555" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+          <line id="Line_502-4" data-name="Line 502" y1="6.555" transform="translate(6.555)" fill="none" stroke="#ccc" stroke-linecap="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

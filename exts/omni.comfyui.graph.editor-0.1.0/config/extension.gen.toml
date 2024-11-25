@@ -1,0 +1,13 @@
+
+[package]
+    archivePath = "http://d4i3qtqj3r0z5.cloudfront.net/omni.kit.graph.editor.example-1.0.22.zip"
+    repository = "https://gitlab-master.nvidia.com/omniverse/kit-extensions/kit-graphs.git"
+
+    [package.publish]
+        kitVersion = "105.1+master.119533.48be84f7.tc"
+        date = 1687563065
+        buildNumber = "105.0.0+master.2049.92f3780d.tc"
+        repoName = "kit-graphs"
+
+    [package.authors]
+        0 = "Damien Fagnou <dfagnou@nvidia.com>, Min Jiang <minj@nvidia.com>"

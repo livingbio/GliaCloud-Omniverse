@@ -1,0 +1,44 @@
+[package]
+title = "ComfyUI Graph Editor"
+description = "A built-in ComfyUI graph editor and Graph Model for the Omniverse platform"
+version = "0.1.0"
+authors = ["GliaCloud"]
+repository = ""
+keywords = ["graph", "ai", "editor"]
+changelog = "docs/CHANGELOG.md"
+preview_image = "data/preview.png"
+readme = "docs/README.md"
+category = "Kit"
+icon = "icons/icon.svg"
+
+[dependencies]
+"omni.ui" = {}
+"omni.kit.graph.editor.core" = {}
+"omni.kit.window.quicksearch" = {optional=true}
+"omni.kit.window.filepicker" = {optional=true}
+"omni.kit.window.popup_dialog" = {optional=true}
+"omni.kit.graph.delegate.default" = {}
+"omni.kit.graph.delegate.modern" = {}
+"omni.kit.graph.delegate.neo" = {}
+
+[[python.module]]
+name = "omni.comfyui.graph.editor"
+
+[[test]]
+dependencies = [
+    "omni.kit.mainwindow",
+    "omni.kit.renderer.capture",
+    "omni.kit.renderer.core",
+    "omni.kit.graph.editor.example",
+    "omni.kit.graph.editor.core"
+]
+
+args = [
+    "--/app/window/dpiScaleOverride=1.0",
+    "--/app/window/scaleToMonitor=false",
+    "--no-window"
+]
+
+stdoutFailPatterns.exclude = [
+    "*Failed to load texture*",
+]

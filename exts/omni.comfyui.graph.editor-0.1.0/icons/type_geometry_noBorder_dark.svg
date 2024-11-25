@@ -1,0 +1,5 @@
+<svg id="type_geometry_noBorder_dark" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <rect id="Icon_Base" width="40" height="40" fill="none"/>
+  <path id="cube" d="M0,4.9,10.12,0,20.364,4.9V16.731L10.12,21.464,0,16.731Z" transform="translate(9.843 9.191)" fill="#8fa88d"/>
+  <path id="outline" d="M10.368,22.021,0,17.117V4.923L10.368,0,20.736,4.923V17.117Zm.6-11.813V21.072l9.165-4.335V5.873ZM.6,16.737l9.165,4.335V10.208L.6,5.873ZM1.4,4.923l8.964,4.24,8.964-4.24L10.368.666Z" transform="translate(9.632 8.989)" fill="#536b57"/>
+</svg>

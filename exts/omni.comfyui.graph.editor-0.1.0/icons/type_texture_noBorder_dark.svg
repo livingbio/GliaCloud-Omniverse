@@ -1,0 +1,8 @@
+<svg id="type_texture_noBorder_dark" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <rect id="Icon_Base" width="40" height="40" fill="none"/>
+  <path id="light_tiles" d="M9,0H40a0,0,0,0,1,0,0V31a9,9,0,0,1-9,9H0a0,0,0,0,1,0,0V9A9,9,0,0,1,9,0Z" fill="#c7cfd3"/>
+  <rect id="dark_tile" width="13" height="13" transform="translate(13.5 27)" fill="#797c98"/>
+  <rect id="dark_tile-2" data-name="dark_tile" width="13.5" height="13" transform="translate(0 14)" fill="#797c98"/>
+  <path id="dark_tile-3" data-name="dark_tile" d="M0-1H13V13H0Z" transform="translate(13.5 1)" fill="#797c98"/>
+  <rect id="dark_tile-4" data-name="dark_tile" width="13.5" height="13" transform="translate(26.5 14)" fill="#797c98"/>
+</svg>
