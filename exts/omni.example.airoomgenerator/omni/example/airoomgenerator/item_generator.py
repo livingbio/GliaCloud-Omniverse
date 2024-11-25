@@ -50,7 +50,7 @@ def place_deepsearch_results(gpt_results, query_result, root_prim_path):
         rotateY = next_object['rotateY']
         rotateZ = next_object['rotateZ']
 
-        set_transformTRS_attrs(next_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(0, -90, -90), Gf.Vec3d(1.0,1.0,1.0))
+        set_transformTRS_attrs(next_prim, Gf.Vec3d(0,0,0), Gf.Vec3d(0, -90, -90), Gf.Vec3d(1.0,1.0,1.0))
 
         set_transformTRS_attrs(parent_prim, Gf.Vec3d(x,y,z), Gf.Vec3d(rotateX, rotateY, rotateZ), Gf.Vec3d(1.0,1.0,1.0))
         scale_object_if_needed(prim_parent_path)
