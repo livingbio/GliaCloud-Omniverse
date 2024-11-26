@@ -1,11 +1,3 @@
-# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
-#
-# NVIDIA CORPORATION and its licensors retain all intellectual property
-# and proprietary rights in and to this software, related documentation
-# and any modifications thereto.  Any use, reproduction, disclosure or
-# distribution of this software and related documentation without an express
-# license agreement from NVIDIA CORPORATION is strictly prohibited.
-#
 __all__ = ["GraphWidget"]
 
 import asyncio
@@ -37,7 +29,9 @@ from omni.kit.graph.delegate.neo.delegate import NeoGraphNodeDelegate
 from omni.kit.graph.delegate.default.delegate import GraphNodeDelegate as DefaultNodeDelegate
 from omni.kit.graph.delegate.default.backdrop_delegate import BackdropDelegate as DefaultBackdropDelegate
 from omni.kit.graph.delegate.modern.note_delegate import NoteDelegate as ModernNoteDelegate
-from omni.kit.graph.delegate.default.compound_node_delegate import CompoundInputOutputNodeDelegate as DefaultCompoundInputOutputNodeDelegate
+from omni.kit.graph.delegate.default.compound_node_delegate import (
+    CompoundInputOutputNodeDelegate as DefaultCompoundInputOutputNodeDelegate,
+)
 from omni.kit.graph.delegate.default.compound_node_delegate import CompoundNodeDelegate as DefaultCompoundNodeDelegate
 
 from omni.kit.graph.delegate.modern.delegate import GraphNodeDelegate as ModernNodeDelegate
@@ -57,10 +51,7 @@ class DelegateNameModel(ui.AbstractItemModel):
         self._current_index = ui.SimpleIntModel()
         self._current_index.add_value_changed_fn(lambda a: self._item_changed(None))
 
-        self._items = [
-            DelegateNameItem(text)
-            for text in names
-        ]
+        self._items = [DelegateNameItem(text) for text in names]
 
     def get_item_children(self, item):
         return self._items
@@ -81,6 +72,7 @@ class GraphViewConnectionsOnTop(GraphView):
 
 class GraphWidget(GraphEditorCoreWidget):
     """graph widget which is inherited from GraphEditorCoreWidget"""
+
     class DelegateType(IntEnum):
         Neo = 0
         Default = 1
@@ -117,10 +109,10 @@ class GraphWidget(GraphEditorCoreWidget):
         self.__create_dialog = None
 
         toolbar_items = [
-            { "name": "open", "icon": f"{ICON_PATH}/open.svg", "on_clicked": self.open_graph},
-            { "name": "save", "icon": f"{ICON_PATH}/save.svg", "on_clicked": self.save_graph},
-            { "name": "new", "icon": f"{ICON_PATH}/new.svg", "on_clicked": self.clear_graph},
-            ]
+            {"name": "open", "icon": f"{ICON_PATH}/open.svg", "on_clicked": self.open_graph},
+            {"name": "save", "icon": f"{ICON_PATH}/save.svg", "on_clicked": self.save_graph},
+            {"name": "new", "icon": f"{ICON_PATH}/new.svg", "on_clicked": self.clear_graph},
+        ]
 
         super().__init__(
             delegate=self._graph_delegate,
@@ -158,7 +150,7 @@ class GraphWidget(GraphEditorCoreWidget):
             self._delegate_style.update(self.get_specialized_style())
 
     def clear_graph(self):
-        self.model=None
+        self.model = None
 
     def on_build_graph(self):
         super().on_build_graph()
@@ -169,10 +161,12 @@ class GraphWidget(GraphEditorCoreWidget):
                     ui.Spacer(height=10)
                     with ui.HStack(width=0):
                         ui.Label("Change Delegate", name="Change Delegate", width=10)
-                        ui.Spacer(width = 10)
-                        self._delegate_name = ui.ComboBox(self._delegate_name_model, width=200, style={"background_color": 0xFF333333})
+                        ui.Spacer(width=10)
+                        self._delegate_name = ui.ComboBox(
+                            self._delegate_name_model, width=200, style={"background_color": 0xFF333333}
+                        )
                         self._delegate_name.model.add_item_changed_fn(self._on_delegate_changed)
-                        ui.Spacer(width = 15)
+                        ui.Spacer(width=15)
 
     def on_build_breadcrumbs(self):
         # add space padding around the navigation
@@ -193,8 +187,7 @@ class GraphWidget(GraphEditorCoreWidget):
 
     def open_graph(self):
         def _on_click_open(file_name: str, directory_path: str):
-            """Callback executed when the user selects a file in the open file dialog
-            """
+            """Callback executed when the user selects a file in the open file dialog"""
             fullpath = os.path.join(directory_path, file_name)
             self.read_graph(fullpath)
             if self.__open_file_dialog:
@@ -204,20 +197,20 @@ class GraphWidget(GraphEditorCoreWidget):
             self.__open_file_dialog.destroy()
 
         from omni.kit.window.filepicker import FilePickerDialog
+
         self.__open_file_dialog = FilePickerDialog(
-                "Open graph .json File",
-                apply_button_label="Open",
-                click_apply_handler=lambda f, d: _on_click_open(f, d),
-                item_filter_options=["*.json", ".json Files (*.json)", "All Files (*)"],
-                item_filter_fn=lambda item: self._on_filter_item(item),
-                current_directory=self.__get_workspace_dir()
-            )
+            "Open graph .json File",
+            apply_button_label="Open",
+            click_apply_handler=lambda f, d: _on_click_open(f, d),
+            item_filter_options=["*.json", ".json Files (*.json)", "All Files (*)"],
+            item_filter_fn=lambda item: self._on_filter_item(item),
+            current_directory=self.__get_workspace_dir(),
+        )
         self.__open_file_dialog.show()
 
     def save_graph(self):
         def _on_click_save(file_name: str, directory_path: str):
-            """Callback executed when the user selects a file in the save file dialog
-            """
+            """Callback executed when the user selects a file in the save file dialog"""
             fullpath = os.path.join(directory_path, file_name)
 
             def __save_as_json(dialog):
@@ -232,13 +225,15 @@ class GraphWidget(GraphEditorCoreWidget):
 
             if os.path.exists(fullpath):
                 from omni.kit.window.popup_dialog import OptionsDialog
+
                 self.__pop_up_dialog = OptionsDialog(
                     title="Overwrite graph .json file",
                     message=f"File {os.path.basename(fullpath)} already exists, do you want to overwrite it?",
                     ok_label="Yes",
                     cancel_label="No",
                     ok_handler=__save_as_json,
-                    cancel_handler=__rename_json)
+                    cancel_handler=__rename_json,
+                )
                 self.__pop_up_dialog.show()
             else:
                 __save_as_json(fullpath)
@@ -249,14 +244,15 @@ class GraphWidget(GraphEditorCoreWidget):
             self.__open_file_dialog.destroy()
 
         from omni.kit.window.filepicker import FilePickerDialog
+
         self.__save_file_dialog = FilePickerDialog(
-                "Save graph .json File",
-                apply_button_label="Save",
-                click_apply_handler=lambda f, d: _on_click_save(f, d),
-                item_filter_options=["*.json", ".json Files (*.json)"],
-                item_filter_fn=lambda item: self._on_filter_item(item),
-                current_directory=self.__get_workspace_dir(),
-            )
+            "Save graph .json File",
+            apply_button_label="Save",
+            click_apply_handler=lambda f, d: _on_click_save(f, d),
+            item_filter_options=["*.json", ".json Files (*.json)"],
+            item_filter_fn=lambda item: self._on_filter_item(item),
+            current_directory=self.__get_workspace_dir(),
+        )
         self.__save_file_dialog.show()
 
     def destroy(self):
@@ -319,18 +315,19 @@ class GraphWidget(GraphEditorCoreWidget):
             self.__create_dialog.hide()
 
         from omni.kit.window.popup_dialog import InputDialog
+
         self.__create_dialog = InputDialog(
-            title=f"Create a new Graph",
+            title="Create a new Graph",
             message="Enter graph name",
             default_value="MyGraph",
             ok_handler=__create_new_graph,
-            cancel_handler=__cancel
+            cancel_handler=__cancel,
         )
         self.__create_dialog.show()
 
     def on_build_startup(self):
-        """ this is an override for the function in base Class while building the graph
-            we define the graph model with serializing a json file
+        """this is an override for the function in base Class while building the graph
+        we define the graph model with serializing a json file
         """
         with ui.ZStack():
             ICON_SIZE = 120
@@ -374,39 +371,90 @@ class GraphWidget(GraphEditorCoreWidget):
 
         # node types
         style.update(
-            self._graph_delegate.specialized_color_style("Rendering", 0xFF921F68, f"{ICON_PATH}/type_rendering_noBorder_dark.svg", color or 0xFF5A2045))
+            self._graph_delegate.specialized_color_style(
+                "Rendering", 0xFF921F68, f"{ICON_PATH}/type_rendering_noBorder_dark.svg", color or 0xFF5A2045
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Material", 0xFFB97E9C, f"{ICON_PATH}/type_material_noBorder_dark.svg", color or 0xFF6E505F))
+            self._graph_delegate.specialized_color_style(
+                "Material", 0xFFB97E9C, f"{ICON_PATH}/type_material_noBorder_dark.svg", color or 0xFF6E505F
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Texture", 0xFFC2665C, f"{ICON_PATH}/type_texture_noBorder_dark.svg", color or 0xFF72443F))
+            self._graph_delegate.specialized_color_style(
+                "Texture", 0xFFC2665C, f"{ICON_PATH}/type_texture_noBorder_dark.svg", color or 0xFF72443F
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Function", 0xFFADFB47, f"{ICON_PATH}/type_function_noBorder_dark.svg", color or 0xFF688E33))
+            self._graph_delegate.specialized_color_style(
+                "Function", 0xFFADFB47, f"{ICON_PATH}/type_function_noBorder_dark.svg", color or 0xFF688E33
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Math", 0xFF538A4A, f"{ICON_PATH}/type_math_noBorder_dark.svg", color or 0xFF3A5636))
+            self._graph_delegate.specialized_color_style(
+                "Math", 0xFF538A4A, f"{ICON_PATH}/type_math_noBorder_dark.svg", color or 0xFF3A5636
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Geometry", 0xFF576B53, f"{ICON_PATH}/type_geometry_noBorder_dark.svg", color or 0xFF3C463A))
+            self._graph_delegate.specialized_color_style(
+                "Geometry", 0xFF576B53, f"{ICON_PATH}/type_geometry_noBorder_dark.svg", color or 0xFF3C463A
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Time", 0xFFDBA656, f"{ICON_PATH}/type_time_noBorder_dark.svg", color or 0xFF7F643C))
+            self._graph_delegate.specialized_color_style(
+                "Time", 0xFFDBA656, f"{ICON_PATH}/type_time_noBorder_dark.svg", color or 0xFF7F643C
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Animation", 0xFFDBA656, f"{ICON_PATH}/type_animation_noBorder_dark.svg", color or 0xFF7F643C))
+            self._graph_delegate.specialized_color_style(
+                "Animation", 0xFFDBA656, f"{ICON_PATH}/type_animation_noBorder_dark.svg", color or 0xFF7F643C
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Compound", 0xFF7C7457, f"{ICON_PATH}/type_scene_graph_noBorder_dark.svg", color or 0xFF4F4B3C))
+            self._graph_delegate.specialized_color_style(
+                "Compound", 0xFF7C7457, f"{ICON_PATH}/type_scene_graph_noBorder_dark.svg", color or 0xFF4F4B3C
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("InputNode", 0xFFCE5FE5, f"{ICON_PATH}/type_input_noBorder_dark.svg", color or 0xFF784084))
+            self._graph_delegate.specialized_color_style(
+                "InputNode", 0xFFCE5FE5, f"{ICON_PATH}/type_input_noBorder_dark.svg", color or 0xFF784084
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("OutputNode", 0xFFCE5FE5, f"{ICON_PATH}/type_input_noBorder_dark.svg", color or 0xFF784084))
+            self._graph_delegate.specialized_color_style(
+                "OutputNode", 0xFFCE5FE5, f"{ICON_PATH}/type_input_noBorder_dark.svg", color or 0xFF784084
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Debug", 0xFF6C569F, f"{ICON_PATH}/type_debug_noBorder_dark.svg", color or 0xFF473C60))
+            self._graph_delegate.specialized_color_style(
+                "Debug", 0xFF6C569F, f"{ICON_PATH}/type_debug_noBorder_dark.svg", color or 0xFF473C60
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("UI", 0xFF588A9E, f"{ICON_PATH}/type_ui_noBorder_dark.svg", color or 0xFF3D5660))
+            self._graph_delegate.specialized_color_style(
+                "UI", 0xFF588A9E, f"{ICON_PATH}/type_ui_noBorder_dark.svg", color or 0xFF3D5660
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("IO", 0xFF4D87EE, f"{ICON_PATH}/type_io_noBorder_dark.svg", color or 0xFF375588))
+            self._graph_delegate.specialized_color_style(
+                "IO", 0xFF4D87EE, f"{ICON_PATH}/type_io_noBorder_dark.svg", color or 0xFF375588
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Backdrop", 0xFF9B9B9B, f"{ICON_PATH}/type_generic_noBorder_dark.svg", color or 0xFF5F5F5F))
+            self._graph_delegate.specialized_color_style(
+                "Backdrop", 0xFF9B9B9B, f"{ICON_PATH}/type_generic_noBorder_dark.svg", color or 0xFF5F5F5F
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Note", 0xFF8B9B9B, f"{ICON_PATH}/type_generic_noBorder_dark.svg", color or 0xFF5F5F5F))
+            self._graph_delegate.specialized_color_style(
+                "Note", 0xFF8B9B9B, f"{ICON_PATH}/type_generic_noBorder_dark.svg", color or 0xFF5F5F5F
+            )
+        )
         style.update(
-            self._graph_delegate.specialized_color_style("Event", 0xFF7ABF20, f"{ICON_PATH}/type_event_noBorder_dark.svg", color or 0xFF4B6E1E))
+            self._graph_delegate.specialized_color_style(
+                "Event", 0xFF7ABF20, f"{ICON_PATH}/type_event_noBorder_dark.svg", color or 0xFF4B6E1E
+            )
+        )
 
         style.update(self._graph_delegate.specialized_port_style("bool", 0xFF1C1CE2))
         style.update(self._graph_delegate.specialized_port_style("str", 0xFF781FA5))
@@ -422,8 +470,8 @@ class GraphWidget(GraphEditorCoreWidget):
         return style
 
     def on_right_mouse_button_pressed(self, items):
-        """ this is an override for the function in base Class while right mouse button is pressed
-            we create a context menu when right mouse button pressed
+        """this is an override for the function in base Class while right mouse button is pressed
+        we create a context menu when right mouse button pressed
         """
         self.__context_menu = ui.Menu("Context menu")
         with self.__context_menu:
@@ -439,7 +487,9 @@ class GraphWidget(GraphEditorCoreWidget):
             ui.Separator()
             ui.MenuItem("Layout All", triggered_fn=lambda: self._graph_view.layout_all())
             ui.MenuItem("Focus on All", triggered_fn=lambda: self._graph_view.focus_on_nodes())
-            ui.MenuItem("Focus on Selection", triggered_fn=lambda: self._graph_view.focus_on_nodes(self._graph_model.selection))
+            ui.MenuItem(
+                "Focus on Selection", triggered_fn=lambda: self._graph_view.focus_on_nodes(self._graph_model.selection)
+            )
 
         self.__context_menu.show()
 
@@ -451,8 +501,8 @@ class GraphWidget(GraphEditorCoreWidget):
         self._graph_model.current_graph = item
 
     def on_left_mouse_button_double_clicked(self, items):
-        """ this is an override for the function in base Class while left mouse button is double clicked
-            we enter into a subgraph when we double click a CompoundNode
+        """this is an override for the function in base Class while left mouse button is double clicked
+        we enter into a subgraph when we double click a CompoundNode
         """
         # double click on a compound node will open the subgraph
         if not items:

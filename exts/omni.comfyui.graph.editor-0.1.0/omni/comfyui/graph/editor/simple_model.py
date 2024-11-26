@@ -3,8 +3,27 @@ from omni.kit.widget.graph import GraphModelBatchPositionHelper, AbstractBatchPo
 from omni.kit.widget.graph import SelectionGetter, BackdropGetter
 from typing import List, Any, Dict, Set, Tuple
 
-from .nodes import *
+from .nodes import (
+    Node,
+    Port,
+    GraphNode,
+    TextureNode,
+    MDLNode,
+    Backdrop,
+    OmniNote,
+    CompoundNode,
+    RenderingNode,
+    GeometryNode,
+    TimeNode,
+    AnimationNode,
+    DebugNode,
+    UINode,
+    IONode,
+    EventNode,
+    MathNode,
+)
 import json
+
 
 class DescendantGetter(AbstractBatchPositionGetter):
     """Helper to get the nodes that are descendatns of the input node"""
@@ -21,7 +40,7 @@ class DescendantGetter(AbstractBatchPositionGetter):
                 node = drive_item
             elif isinstance(drive_item, Port):
                 node = drive_item.node
-            else: # could be backdrop or note, return early for that
+            else:  # could be backdrop or note, return early for that
                 return descendants
 
             current_graph = model.current_graph
@@ -44,10 +63,11 @@ class DescendantGetter(AbstractBatchPositionGetter):
             _get_descendant(descendants, node)
             return descendants
 
+
 class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
     """Simple model with few nodes to demo and test the Delegate. This manages all the data for the graph."""
 
-    def __init__(self, graph_root: GraphNode, graph_data: Dict=None):
+    def __init__(self, graph_root: GraphNode, graph_data: Dict = None):
         super().__init__()
         # all the nodes in the graph
         self._nodes: List[Node] = []
@@ -118,15 +138,15 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         for dest_port, src_strs in self.__connections.items():
             for src_str in src_strs:
                 src_port = self.__graph_map.get(src_str, None)
-                if src_port != None:
+                if src_port is not None:
                     if dest_port.is_input:
                         dest_port.inputs.append(src_port)
                     else:
                         dest_port.outputs.append(src_port)
 
                     # connected_ports are used for delegate to draw the visual ports when the nodes are CLOSED
-                    # we don't add the subgraph connection when it's the `creating new port` connection, since that subgraph
-                    # port is not yet connected to external nodes.
+                    # we don't add the subgraph connection when it's the `creating new port` connection,
+                    # since that subgraph port is not yet connected to external nodes.
                     if dest_port.is_input != src_port.is_input:
                         dest_node = dest_port.node
                         self.__connected_ports[dest_node] = self.__connected_ports.get(dest_node, set()) | {dest_port}
@@ -174,7 +194,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         parent.add_child(node)
         self.__graph_map[node.path] = node
         if position:
-            node.position= position
+            node.position = position
         return node
 
     def __build_node(self, graph_data: Dict, parent):
@@ -314,7 +334,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
             for output in outputs:
                 port_data["outputs"].append(output.path)
 
-        subports=port.children
+        subports = port.children
         if len(subports) > 0:
             port_data["ports"] = []
             for subport in subports:
@@ -360,7 +380,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         for child in self._graph_root._children:
             graph_data["nodes"].append(self.write_node(child))
 
-        with open(file_path, 'w') as fp:
+        with open(file_path, "w") as fp:
             json.dump(data, fp)
 
     @property
@@ -374,7 +394,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         self.__current_graph = value
 
     ################################################################
-    ## API OVERLOAD
+    # API OVERLOAD
     ################################################################
 
     @property
@@ -387,8 +407,11 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
 
         # when the input item root, we return all the nodes exist on the current graph
         if item == self._graph_root:
-            return [child for child in self._graph_root.children()
-                    if isinstance(child, Node) or isinstance(child, Backdrop) or isinstance(child, OmniNote)]
+            return [
+                child
+                for child in self._graph_root.children()
+                if isinstance(child, Node) or isinstance(child, Backdrop) or isinstance(child, OmniNote)
+            ]
 
         # when the input item root, we return all the nodes exist on the current compound node
         if item.type == "Compound":
@@ -406,7 +429,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
     @name.setter
     def name(self, value, item):
         if isinstance(item, Node) or isinstance(item, Backdrop) or isinstance(item, OmniNote):
-            item.ui_name=value
+            item.ui_name = value
             self._item_changed(item)
 
     @property
@@ -435,10 +458,11 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
             if isinstance(item, Port):
                 if len(item.inputs) > 0:
                     item.inputs.clear()
-                elif len(item.outputs)>0:
+                elif len(item.outputs) > 0:
                     item.outputs.clear()
         else:
-            # when the item is not a Port, but a CompoundNode, it means that we are connecting a port to the Output node of
+            # when the item is not a Port, but a CompoundNode,
+            # it means that we are connecting a port to the Output node of
             # a compoundNode. In this case, we need to create a new output port for the node
             source = value[0]
             if isinstance(item, CompoundNode):
@@ -530,7 +554,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         """the expansion state of a node or a port"""
         if isinstance(item, Port) or isinstance(item, Node):
             return item.state
-        else: # could be the empty port of Compound node
+        else:  # could be the empty port of Compound node
             return GraphModel.ExpansionState.OPEN
 
     @expansion_state.setter
@@ -570,9 +594,9 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         for node in self._selected_nodes:
             if node in self.__current_graph.children():
                 self.__current_graph.children().remove(node)
-            else: # this is an input/output node
+            else:  # this is an input/output node
                 # since there is no way to know the selection is an input or output
-                print(f"Deleting an Input/Output Node is currently not supported")
+                print("Deleting an Input/Output Node is currently not supported")
         self._item_changed(None)
 
     @property
@@ -625,7 +649,7 @@ class SimpleGraphModel(GraphModel, GraphModelBatchPositionHelper):
         return item.position
 
     @position.setter
-    def position(self, value, item = None):
+    def position(self, value, item=None):
         """set the position"""
         self.batch_set_position(value, item)
         prev_position = item.position

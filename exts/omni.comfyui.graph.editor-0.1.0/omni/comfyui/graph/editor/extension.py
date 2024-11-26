@@ -1,11 +1,3 @@
-# Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
-#
-# NVIDIA CORPORATION and its licensors retain all intellectual property
-# and proprietary rights in and to this software, related documentation
-# and any modifications thereto.  Any use, reproduction, disclosure or
-# distribution of this software and related documentation without an express
-# license agreement from NVIDIA CORPORATION is strictly prohibited.
-#
 __all__ = ["ComfyUIEditorExtension"]
 
 import asyncio
@@ -21,6 +13,7 @@ _extension_instance = None
 
 class ComfyUIEditorExtension(omni.ext.IExt):
     """Graph Editor Example"""
+
     WINDOW_NAME = GraphWindow.title
     MENU_PATH = "Window/GliaCloud Custom/" + WINDOW_NAME
 
@@ -35,9 +28,11 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         self._menu = None
 
         editor_menu = omni.kit.ui.get_editor_menu()
-        if (editor_menu):
-            self._menu = editor_menu.add_item(ComfyUIEditorExtension.MENU_PATH, self._on_menu_click, toggle=True, value=True)
-        
+        if editor_menu:
+            self._menu = editor_menu.add_item(
+                ComfyUIEditorExtension.MENU_PATH, self._on_menu_click, toggle=True, value=True
+            )
+
         self.show_window(self._menu, True)
 
         # Quick Search subscription
@@ -129,7 +124,7 @@ class ComfyUIEditorExtension(omni.ext.IExt):
                 NodeRegistryQuickSearchModel,
                 GraphEditorCoreTreeDelegate,
                 accept_fn=self._is_window_focused,
-                priority=0
+                priority=0,
             )
         else:
             # Deregister simple model in Quick Search

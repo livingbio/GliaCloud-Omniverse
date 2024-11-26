@@ -3,6 +3,7 @@ import omni.ui as ui
 import json
 
 from pathlib import Path
+
 CURRENT_PATH = Path(__file__).parent
 EXT_PATH = CURRENT_PATH.parent.parent.parent.parent.parent
 ICON_PATH = EXT_PATH.joinpath("icons")
@@ -31,7 +32,8 @@ class NodeBaseItem(ui.AbstractItem):
 
 
 class GroupItem(NodeBaseItem):
-    """Group item for NodeRegistryModel """
+    """Group item for NodeRegistryModel"""
+
     def __init__(self, group_name):
         super().__init__(group_name, "", "", "")
         self.filtered = True
@@ -77,11 +79,25 @@ class NodeRegistryModel(ui.AbstractItemModel):
             NodeBaseItem("UI", "This is a ui node", f"{ICON_PATH}/type_ui_dark.svg", "UI"),
         ]
         miscellaneous_item.children = [
-            NodeBaseItem("Backdrop", "Create Backdrop for your Graph", f"{ICON_PATH}/type_generic_dark.svg", "Backdrop"),
+            NodeBaseItem(
+                "Backdrop", "Create Backdrop for your Graph", f"{ICON_PATH}/type_generic_dark.svg", "Backdrop"
+            ),
             NodeBaseItem("OmniNote", "Create a Note for your Graph", f"{ICON_PATH}/type_generic_dark.svg", "OmniNote"),
-            NodeBaseItem("Scene Graph", "Enable your to build subGraph", f"{ICON_PATH}/type_scene_graph_dark.svg", "Compound"),
-            NodeBaseItem("Input", "Provide access to the inputs of the current compound", f"{ICON_PATH}/type_input_dark.svg", "Input"),
-            NodeBaseItem("Output", "Provide access to the outputs of the current compound", f"{ICON_PATH}/type_input_dark.svg", "Output")
+            NodeBaseItem(
+                "Scene Graph", "Enable your to build subGraph", f"{ICON_PATH}/type_scene_graph_dark.svg", "Compound"
+            ),
+            NodeBaseItem(
+                "Input",
+                "Provide access to the inputs of the current compound",
+                f"{ICON_PATH}/type_input_dark.svg",
+                "Input",
+            ),
+            NodeBaseItem(
+                "Output",
+                "Provide access to the outputs of the current compound",
+                f"{ICON_PATH}/type_input_dark.svg",
+                "Output",
+            ),
         ]
 
     def destroy(self):

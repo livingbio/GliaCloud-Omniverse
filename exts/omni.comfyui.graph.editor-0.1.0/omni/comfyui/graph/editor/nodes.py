@@ -1,4 +1,3 @@
-
 from omni.kit.widget.graph.graph_model import GraphModel
 from typing import List
 from pathlib import Path
@@ -9,7 +8,7 @@ FILE_PATH1 = CURRENT_PATH.absolute().resolve().joinpath("data/Carpet_Cream.mdl.p
 FILE_PATH2 = CURRENT_PATH.absolute().resolve().joinpath("data/Carpet_Gray.mdl.png")
 
 
-class Port():
+class Port:
     """port class, e.g. attributes of nodes"""
 
     def __init__(self, _name: str, _type: str, _parent):
@@ -47,7 +46,7 @@ class Port():
         self.state: GraphModel.ExpansionState = GraphModel.ExpansionState.CLOSED
 
 
-class Node():
+class Node:
     """node base class"""
 
     def __init__(self, name: str, parent=None):
@@ -59,7 +58,10 @@ class Node():
 
         # we give one default input Port
         self.group_port = Port("input:Group Input", "group", self)
-        self.group_port.children = [Port("input:child1", "int", self.group_port), Port("input:child2", "int", self.group_port)]
+        self.group_port.children = [
+            Port("input:child1", "int", self.group_port),
+            Port("input:child2", "int", self.group_port),
+        ]
 
         self._in_ports = [Port("input:Default Input", "str", self), self.group_port]
         # we give one default output Port
@@ -99,7 +101,8 @@ class Node():
 
 class CompoundNode(Node):
     """The subgraph nodes. It could contain many different types of nodes and more compounds nodes."""
-    def __init__(self, name: str, parent = None):
+
+    def __init__(self, name: str, parent=None):
         super().__init__(name, parent)
         self._children: List[Node] = []
         self.type = "Compound"
@@ -122,6 +125,7 @@ class GraphNode(CompoundNode):
     """The root graph node. It could contain many different types of nodes and compound nodes.
     Functionnally similar with Compound Node, but only one per graph. Therefore, we can't create Graph typed node
     from node registry model"""
+
     def __init__(self, name: str):
         super().__init__(name)
 
@@ -131,6 +135,7 @@ class GraphNode(CompoundNode):
 
 class TextureNode(Node):
     """Special texture node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Texture"
@@ -139,23 +144,34 @@ class TextureNode(Node):
         self.preview_state = GraphModel.ExpansionState.MINIMIZED
 
         # we give one default input Port
-        self._in_ports = [Port("input:in_texture", "texture", self), Port("input:mult", "float", self), Port("input:Default Input", "str", self)]
+        self._in_ports = [
+            Port("input:in_texture", "texture", self),
+            Port("input:mult", "float", self),
+            Port("input:Default Input", "str", self),
+        ]
         # we give one default output Port
         self._out_ports = [Port("output:out_texture", "texture", self), Port("output:Default Output", "str", self)]
 
 
 class RenderingNode(Node):
     """Special texture node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Rendering"
         # we give one default input Port
-        self._in_ports = [Port("input:sample", "int", self), Port("input:resolution", "int", self), Port("input:in_texture", "texture", self)]
+        self._in_ports = [
+            Port("input:sample", "int", self),
+            Port("input:resolution", "int", self),
+            Port("input:in_texture", "texture", self),
+        ]
         # we give one default output Port
         self._out_ports = [Port("output:out_texture", "texture", self)]
 
+
 class GeometryNode(Node):
     """Special texture node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Geometry"
@@ -167,6 +183,7 @@ class GeometryNode(Node):
 
 class TimeNode(Node):
     """Special texture node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Time"
@@ -178,16 +195,23 @@ class TimeNode(Node):
 
 class AnimationNode(Node):
     """Special animation node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Animation"
         # we give one default input Port
         self._in_ports = [Port("input:asset", "asset", self), Port("input:time", "float", self)]
         # we give one default output Port
-        self._out_ports = [Port("output:num_frames", "int", self), Port("output:num_skeletons", "int", self), Port("output:is_live", "bool", self)]
+        self._out_ports = [
+            Port("output:num_frames", "int", self),
+            Port("output:num_skeletons", "int", self),
+            Port("output:is_live", "bool", self),
+        ]
+
 
 class DebugNode(Node):
     """Special debug node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Debug"
@@ -196,8 +220,10 @@ class DebugNode(Node):
         # we give one default output Port
         self._out_ports = [Port("output:out", "str", self)]
 
+
 class MathNode(Node):
     """Special math node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Math"
@@ -209,14 +235,17 @@ class MathNode(Node):
 
 class UINode(Node):
     """Special UI node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "UI"
         self._in_ports = [Port("input:in_color", "color", self), Port("input:is_ui", "bool", self)]
         self._out_ports = [Port("output:out1", "asset", self)]
 
+
 class IONode(Node):
     """Special IO node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "IO"
@@ -224,13 +253,16 @@ class IONode(Node):
 
 class EventNode(Node):
     """Special event node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Event"
         self._out_ports = [Port("output:time", "float", self)]
 
+
 class MDLNode(Node):
     """Special MDL node"""
+
     def __init__(self, name: str, parent):
         super().__init__(name, parent)
         self.type = "Material"
@@ -244,8 +276,9 @@ class MDLNode(Node):
         self._out_ports = [Port("output:out_material", "color", self), Port("output:Default Output", "str", self)]
 
 
-class Backdrop():
+class Backdrop:
     """Back drop node"""
+
     def __init__(self, name: str, parent):
         self.name = name
         self.ui_name = name
@@ -261,8 +294,9 @@ class Backdrop():
         self.parent = parent
 
 
-class OmniNote():
+class OmniNote:
     """Note node"""
+
     def __init__(self, name: str, parent):
         self.name = name
         self.ui_name = name

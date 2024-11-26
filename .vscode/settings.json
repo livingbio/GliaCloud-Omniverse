@@ -523,8 +523,11 @@
     ],
 
     // Python & Pylance Setup
-    "python.languageServer": "Pylance",
     "python.defaultInterpreterPath": "${workspaceFolder}/app/kit/python/python.exe",
+    "python.languageServer": "Pylance",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportShadowedImports": false
+    },
 
     // We use "black" as a formatter:
     "[python]": {
@@ -536,5 +539,9 @@
     ],
     // Use flake8 for linting
     "pylint.enabled": false,
+    "flake8.args": [
+        "--max-line-length=120",
+        "--ignore=E402,F841,F401,E302,E305",
+    ],
 }
 
