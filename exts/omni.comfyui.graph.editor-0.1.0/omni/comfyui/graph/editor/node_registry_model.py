@@ -1,13 +1,15 @@
 from enum import Enum
 import omni.ui as ui
 import json
+import carb
 
 from pathlib import Path
 
 CURRENT_PATH = Path(__file__).parent
-EXT_PATH = CURRENT_PATH.parent.parent.parent.parent.parent
+EXT_PATH = CURRENT_PATH.parent.parent.parent.parent
 ICON_PATH = EXT_PATH.joinpath("icons")
 
+carb.log_warn(ICON_PATH)
 
 class NodeBaseItem(ui.AbstractItem):
     """Node Base item for NodeRegistryModel"""

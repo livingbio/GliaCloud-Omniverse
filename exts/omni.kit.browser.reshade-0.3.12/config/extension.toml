@@ -43,3 +43,4 @@ dependencies = [
 [settings]
 exts."omni.kit.browser.reshade".min_thumbnail_size = 32
 exts."omni.kit.browser.reshade".max_thumbnail_size = 512
+exts."omni.kit.browser.reshade"._ext_id = ""

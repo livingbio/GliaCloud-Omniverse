@@ -1,3 +1,13 @@
+/*
+    Resources:
+
+	Kuwahara convolutional shader for GShade - v1.0
+	- author: Packetdancer
+	- url: https://github.com/Packetdancer/gshade-styles/blob/master/OilPainting/Shaders/pkd_Kuwahara.fx
+
+    Ported to NVIDIA Omniverse by GliaCloud.
+*/
+
 #include "ReShade.fxh"
 
 namespace PaintingFX {
@@ -5,7 +15,6 @@ namespace PaintingFX {
 static const float2 PIXEL_SIZE 		= float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 
 #define TEXEL_SIZE_FOR_LOD(lod) PIXEL_SIZE.xy * pow(2.0, lod);
-
 
 uniform float2 CFG_KUWAHARA_RADIUS <
 	ui_type = "slider";
@@ -34,22 +43,6 @@ uniform bool CFG_KUWAHARA_DEPTHAWARE <
 	ui_tooltip = "Adjust the Kuwahara radius based on depth, which will ensure the foreground elements have more detail than background.";
 > = false;
 
-uniform float2 CFG_KUWAHARA_DEPTHAWARE_CURVE <
-	ui_type = "slider";
-	ui_category = "Experimental";
-	ui_label = "Depth-aware Curve";
-	ui_tooltip = "Start/end values for where the foreground will transition to the background.";
-	ui_min = 0.0; ui_max = 1.0; ui_step = 0.01;
-> = float2(0.12, 0.55);
-
-uniform float2 CFG_KUWAHARA_DEPTHAWARE_MINRADIUS <
-	ui_type = "slider";
-	ui_category = "Experimental";
-	ui_label = "Minimum Radius";
-	ui_tooltip = "The smallest radius, to use for the foreground elements.";
-	ui_min = 1.2; ui_max = 5.9; ui_step = 0.1;
-> = float2(2, 2);
-
 uniform bool CFG_KUWAHARA_DEPTHAWARE_EXCLUDESKY <
 	ui_category = "Experimental";
 	ui_label = "Depth-Awareness Excludes Sky";
@@ -71,6 +64,22 @@ uniform float CFG_KUWAHARA_DEPTHAWARE_SKYBLEND_STRENGTH <
 	ui_tooltip = "If the blend style is 'Manual Blend', how strong should the blend be? (0 is the painted foreground, 1.0 is the preserved sky.)";
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.01;
 > = 0.5;
+
+uniform float2 CFG_KUWAHARA_DEPTHAWARE_CURVE <
+	ui_type = "slider";
+	ui_category = "Experimental";
+	ui_label = "Depth-aware Curve";
+	ui_tooltip = "Start/end values for where the foreground will transition to the background.";
+	ui_min = 0.0; ui_max = 1.0; ui_step = 0.01;
+> = float2(0.12, 0.55);
+
+uniform float2 CFG_KUWAHARA_DEPTHAWARE_MINRADIUS <
+	ui_type = "slider";
+	ui_category = "Experimental";
+	ui_label = "Minimum Radius";
+	ui_tooltip = "The smallest radius, to use for the foreground elements.";
+	ui_min = 1.2; ui_max = 5.9; ui_step = 0.1;
+> = float2(2, 2);
 
 texture texSky { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
 sampler sampSky { Texture = texSky; };
@@ -171,7 +180,6 @@ float3 Kuwahara(float2 texcoord, float2 radius, float2x2 rotation)
 	}
 
 	return result;
-	
 }
 
 float4 PS_SkyKeep(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
@@ -261,8 +269,8 @@ float4 PS_SkyRestore(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_
 			alpha = CFG_KUWAHARA_DEPTHAWARE_SKYBLEND_STRENGTH;
 		}
 
-		float3 temp = lerp(bb.rgb, sky.rgb, alpha);
-        return float4(temp, 1.0);
+		float3 _inter = lerp(bb.rgb, sky.rgb, alpha);
+        return float4(_inter, 1.0);
 	}
 }
 
@@ -297,7 +305,6 @@ float3 HSVtoRGB(in float3 HSV) {
   return ((RGB - 1) * HSV.y + 1) * HSV.z;
 }
 
-
 float4 PS_Painting(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	float4 meanVariance[4];
@@ -325,20 +332,16 @@ float4 PS_Painting(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Ta
 		radius = CFG_KUWAHARA_DEPTHAWARE_MINRADIUS + (delta * percent);
 	}
 
-	float3 temp = Kuwahara(texcoord, radius, rotation).rgb;
+	float3 _inter = Kuwahara(texcoord, radius, rotation).rgb;
 
-
-    float3 h = RGBtoHSV(temp.rgb);
+    float3 h = RGBtoHSV(_inter.rgb);
 
     h.y += (1 - h.y) * (.75 * pow(smoothstep(0, 1, h.y), .5));
     h.z = pow(h.z, .5);
-    temp.rgb = HSVtoRGB(h);
+    _inter.rgb = HSVtoRGB(h);
 
-    return float4(temp, 1);
+    return float4(_inter, 1);
 }
-
-
-
 
 technique Painting
 {
@@ -360,8 +363,6 @@ technique Painting
 		VertexShader = PostProcessVS;
 		PixelShader = PS_SkyRestore;
 	}
-
-
 }
 
 } // namespace

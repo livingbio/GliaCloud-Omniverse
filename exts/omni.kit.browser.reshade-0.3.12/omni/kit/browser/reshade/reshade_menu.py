@@ -18,7 +18,7 @@ from pxr import Usd, Gf, Sdf
 # from watchdog.events import FileSystemEventHandler
 # from watchdog.observers import Observer
 __DEBUG_MENU__ = False
-__MENU_NAME__="Reshade"
+__MENU_NAME__ = "Reshade"
 import random  # test
 
 
@@ -35,8 +35,6 @@ class ReshadeMenuHookExt(omni.ext.IExt):
         await omni.kit.app.get_app().next_update_async()
         omni.kit.menu.utils.remove_menu_items(self.menu_list, self.menu_name)
         self._presets_dict = self._make_presets_dict(self._presets_path)
-        # print("dict")
-        # print(self._presets_dict)
 
         self.menu_build()
 
@@ -132,10 +130,10 @@ class ReshadeMenuHookExt(omni.ext.IExt):
     def on_startup(self, ext_id):
         # self.rendersettings = carb.settings.get_settings()
         # self.is_enabled = self.rendersettings.get("/rtx/reshade/enable")
-        self.menu_name=__MENU_NAME__;
+        self.menu_name = __MENU_NAME__
         self._presets_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(ext_id) + "/presets/"
-        self._fx_path=omni.kit.app.get_app().get_extension_manager().get_extension_path(ext_id) + "/presets/fx/"
-        # print("Presets path:",self._presets_path)
+        self._fx_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(ext_id) + "/presets/fx/"
+
         self._presets_dict = self._make_presets_dict(self._presets_path)
         self.menu_build()
 
@@ -173,11 +171,11 @@ class ReshadeMenuHookExt(omni.ext.IExt):
     def lean_toggle_effect(self, preset):
         fp = os.path.normpath(preset).replace("\\", "/")  # preset is a full path to ini file
         sd = os.path.dirname(preset)
-        
+
         s = carb.settings.get_settings()
         s.set("/rtx/reshade/presetFilePath", fp)
         s.set("/rtx/reshade/effectSearchDirPath", self._fx_path)
-        s.set("/rtx/reshade/textureSearchDirPath", self._fx_path) #textures are usually hardcoded inside fx
+        s.set("/rtx/reshade/textureSearchDirPath", self._fx_path)  # textures are usually hardcoded inside fx
         s.set("/rtx/reshade/enable", True)
 
     async def _delayed_toggle_effect(self, preset):
@@ -188,8 +186,7 @@ class ReshadeMenuHookExt(omni.ext.IExt):
         s = carb.settings.get_settings()
         s.set("/rtx/reshade/presetFilePath", fp)
         s.set("/rtx/reshade/effectSearchDirPath", self._fx_path)
-        s.set("/rtx/reshade/textureSearchDirPath", self._fx_path) #textures are usually hardcoded inside fx
-        
+        s.set("/rtx/reshade/textureSearchDirPath", self._fx_path)  # textures are usually hardcoded inside fx
 
         await omni.kit.app.get_app().next_update_async()
         s = carb.settings.get_settings()
