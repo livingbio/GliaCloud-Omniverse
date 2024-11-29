@@ -31,7 +31,7 @@ class USDNucleusOrganizerExtension(omni.ext.IExt):
         self._window = None
         self._menu = None
 
-        # store extension info in Carbonite
+        # store extension id in Carbonite
         _settings = carb.settings.get_settings()
         _settings.set("exts/omni.usd.nucleus.organizer/_ext_id", str(ext_id))
 

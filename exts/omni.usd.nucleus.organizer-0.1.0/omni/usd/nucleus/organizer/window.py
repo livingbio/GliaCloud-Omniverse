@@ -2,6 +2,7 @@ import omni.ui as ui
 import omni.kit.app
 
 import carb
+import asyncio
 
 from .file_picker_window import CustomFilePickerWindow
 from .organized_asset_model import OrganizedAssetModel
@@ -18,10 +19,8 @@ class USDNucleusOrganizerWindow(ui.Window):
         _settings.set("exts/omni.usd.nucleus.organizer/window_state", new_state)
         carb.log_warn(f'Window state changed to {_settings.get("exts/omni.usd.nucleus.organizer/window_state")}')
 
-    def __init__(self, title: str):
-        super().__init__(title, width=400, height=400)
-
-        self.deferred_dock_in("Property", ui.DockPolicy.CURRENT_WINDOW_IS_ACTIVE)
+    def __init__(self, title: str, **kwargs):
+        super().__init__(title, width=400, height=400, **kwargs)
 
         self.selected_file_path = ""
         self.file_picker_window = CustomFilePickerWindow("Select File", self._on_file_submitted)
@@ -36,6 +35,18 @@ class USDNucleusOrganizerWindow(ui.Window):
 
         self._engine = av.ValidationEngine(initRules=False)
 
+        self.deferred_dock_in("Property", ui.DockPolicy.CURRENT_WINDOW_IS_ACTIVE)
+
+        self._build_task = asyncio.ensure_future(self.__dock_window())
+
+    async def __dock_window(self):
+        await omni.kit.app.get_app().next_update_async()
+        viewport = ui.Workspace.get_window("Property")
+        if not viewport:
+            window_handle = ui.Workspace.get_window(self.title)
+            main_dockspace = ui.Workspace.get_window("DockSpace")
+            window_handle.dock_in(main_dockspace, ui.DockPosition.BOTTOM)
+
     def destroy(self):
         self.selected_file_path = ""
         self.file_picker_window = None
@@ -46,6 +57,8 @@ class USDNucleusOrganizerWindow(ui.Window):
         USDNucleusOrganizerWindow._change_window_state("startup")
 
         self.curr_asset_model = None
+
+        self._engine = None
 
         super().destroy()
 

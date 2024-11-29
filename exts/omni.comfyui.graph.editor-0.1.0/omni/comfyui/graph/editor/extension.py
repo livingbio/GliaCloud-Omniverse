@@ -1,59 +1,72 @@
 __all__ = ["ComfyUIEditorExtension"]
 
+import omni.ext
+import omni.ui as ui
+import omni.kit.ui
+
 import asyncio
 from functools import partial
-import omni.ext
-import omni.kit.ui
-from .editor_window import GraphWindow
+import carb
+
+from .editor_window import ComfyUIWindow
 from .node_registry_model import NodeRegistryQuickSearchModel
+
 from omni.kit.graph.editor.core.graph_editor_core_tree_delegate import GraphEditorCoreTreeDelegate
 
-_extension_instance = None
+_global_instance = None
 
 
 class ComfyUIEditorExtension(omni.ext.IExt):
-    """Graph Editor Example"""
+    """Comfy UI Graph Editor Extension"""
 
-    WINDOW_NAME = GraphWindow.title
-    MENU_PATH = "Window/GliaCloud Custom/" + WINDOW_NAME
+    WINDOW_NAME = "ComfyUI Graph Editor"
+    MENU_PATH = f"Window/GliaCloud Custom/{WINDOW_NAME}"
 
-    def on_startup(self):
-        """create the graph window"""
+    def on_startup(self, ext_id):
+        """Create the graph window"""
 
-        global _extension_instance
-        _extension_instance = self
+        global _global_instance
+        _global_instance = self
 
         self._window = None
-
         self._menu = None
 
-        editor_menu = omni.kit.ui.get_editor_menu()
-        if editor_menu:
-            self._menu = editor_menu.add_item(
-                ComfyUIEditorExtension.MENU_PATH, self._on_menu_click, toggle=True, value=True
+        # store extension id in Carbonite
+        _settings = carb.settings.get_settings()
+        _settings.set("exts/omni.usd.nucleus.organizer/_ext_id", str(ext_id))
+
+        # Registers the callback to create our window in omni.ui. Useful for if we want to use QuickLayout.
+        ui.Workspace.set_show_window_fn(ComfyUIEditorExtension.WINDOW_NAME, partial(self.show_window, None))
+
+        # Adds our extension window to the application menu under MENU_PATH
+        _editor_menu = omni.kit.ui.get_editor_menu()
+        if _editor_menu:
+            self._menu = _editor_menu.add_item(
+                ComfyUIEditorExtension.MENU_PATH, on_click=self.show_window, toggle=True, value=True
             )
 
-        self.show_window(self._menu, True)
+        self.show_window(None, True)
 
         # Quick Search subscription
         self._sub = None
 
-        app = omni.kit.app.get_app_interface()
-        ext_manager = app.get_extension_manager()
+        _app = omni.kit.app.get_app_interface()
+        _ext_manager = _app.get_extension_manager()
         self.__extensions_subscription = []
 
         self.__extensions_subscription.append(
-            ext_manager.subscribe_to_extension_enable(
+            _ext_manager.subscribe_to_extension_enable(
                 partial(self._on_extensions_changed, True),
                 partial(self._on_extensions_changed, False),
                 ext_name="omni.kit.window.quicksearch",
-                hook_name="omni.kit.graph.editor.example listener",
+                hook_name="omni.comfyui.graph.editor listener",
             )
         )
 
     def on_shutdown(self):
-        global _extension_instance
-        _extension_instance = None
+        global _global_instance
+        _global_instance = None
+
         self.__extensions_subscription = None
 
         # deregister quick search model
@@ -61,7 +74,10 @@ class ComfyUIEditorExtension(omni.ext.IExt):
             del self._sub
             self._sub = None
 
-        if self._window is not None:
+        if self._menu:
+            self._menu = None
+
+        if self._window:
             self._window.destroy()
             self._window = None
 
@@ -72,35 +88,40 @@ class ComfyUIEditorExtension(omni.ext.IExt):
     def _on_menu_click(self, menu, toggled):
         self.show_window(menu, toggled)
 
-    async def _destroy_window_async(self):
+    async def _destroy_window_async(self, visible):
         # wait one frame, this is due to the one frame defer in Window::_moveToMainOSWindow()
         await omni.kit.app.get_app().next_update_async()
+
+        editor_menu = omni.kit.ui.get_editor_menu()
+        if editor_menu:
+            editor_menu.set_value(ComfyUIEditorExtension.MENU_PATH, visible)
+
         if self._window:
             self._window.destroy()
             self._window = None
 
-    def show_window(self, menu, toggled):
-        if toggled:
+    def show_window(self, _menu_path, show):
+        if show:
             if self._window is None:
-                self._window = GraphWindow()
+                self._window = ComfyUIWindow(ComfyUIEditorExtension.WINDOW_NAME)
                 self._window.set_visibility_changed_fn(self._visiblity_changed_fn)
-            else:
-                self._window.show()
-        else:
-            asyncio.ensure_future(self._destroy_window_async())
+        elif self._window:
+            self._window.visible = False
 
     def _visiblity_changed_fn(self, visible):
-        if self._menu:
-            omni.kit.ui.get_editor_menu().set_value(ComfyUIEditorExtension.MENU_PATH, visible)
-            self.show_window(None, visible)
+        # Called when the user pressed "X"
+        # Set the checkmark in the menu that shows whether this window is visible or not
+        if not visible:
+            # Destroy the window, since we are creating new window in show_window
+            asyncio.ensure_future(self._destroy_window_async(visible))
 
     @staticmethod
     def add_node(mime_data: str):
-        """Adds a node to the current example Graph window"""
-        if not _extension_instance:
+        """Adds a node to the current ComfyUI Graph window"""
+        if not _global_instance:
             return
 
-        self = _extension_instance
+        self = _global_instance
         if not self._window:
             return
 
@@ -113,7 +134,7 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         if self._window._main_widget:
             self._window._main_widget.on_drop(CustomEvent(mime_data))
 
-    def _on_extensions_changed(self, loaded: bool, ext_id: str):
+    def _on_extensions_changed(self, loaded: bool, _ext_id: str):
         """Called when the Quick Search extension is loaded/unloaded"""
         if loaded:
             from omni.kit.window.quicksearch import QuickSearchRegistry
@@ -130,3 +151,8 @@ class ComfyUIEditorExtension(omni.ext.IExt):
             # Deregister simple model in Quick Search
             del self._sub
             self._sub = None
+
+    @staticmethod
+    def get_instance():
+        global _global_instance
+        return _global_instance
