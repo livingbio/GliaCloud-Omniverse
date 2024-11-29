@@ -18,7 +18,7 @@ from .simple_model import SimpleGraphModel
 from .node_registry_model import NodeRegistryModel
 
 CURRENT_PATH = Path(__file__).parent
-EXT_PATH = CURRENT_PATH.parent.parent.parent.parent.parent
+EXT_PATH = CURRENT_PATH.parent.parent.parent.parent
 ICON_PATH = EXT_PATH.joinpath("icons")
 INPUT_PATH = EXT_PATH.joinpath("graphs")
 

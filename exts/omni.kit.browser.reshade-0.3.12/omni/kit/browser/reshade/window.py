@@ -57,7 +57,6 @@ class ReshadeBrowserWindow(ui.Window):
         self.reload_local_presets()
 
     def reload_local_presets(self):
-        carb.log_warn("CALLED")
         url = self._local_presets_folder
         result = self._browser_model.append_root_folder(url)
         if result:

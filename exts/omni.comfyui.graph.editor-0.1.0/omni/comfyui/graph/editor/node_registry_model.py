@@ -9,8 +9,6 @@ CURRENT_PATH = Path(__file__).parent
 EXT_PATH = CURRENT_PATH.parent.parent.parent.parent
 ICON_PATH = EXT_PATH.joinpath("icons")
 
-carb.log_warn(ICON_PATH)
-
 class NodeBaseItem(ui.AbstractItem):
     """Node Base item for NodeRegistryModel"""
 
@@ -64,7 +62,8 @@ class NodeRegistryModel(ui.AbstractItemModel):
         # define two groups
         general_item = GroupItem("General")
         miscellaneous_item = GroupItem("Miscellaneous")
-        self._children = [general_item, miscellaneous_item]
+        comfyui_item = GroupItem("ComfyUI")
+        self._children = [general_item, miscellaneous_item, comfyui_item]
         # define groups' children
         general_item.children = [
             NodeBaseItem("Animation", "This is an animation node", f"{ICON_PATH}/type_animation_dark.svg", "Animation"),
@@ -99,6 +98,12 @@ class NodeRegistryModel(ui.AbstractItemModel):
                 "Provide access to the outputs of the current compound",
                 f"{ICON_PATH}/type_input_dark.svg",
                 "Output",
+            ),
+        ]
+
+        comfyui_item.children = [
+            NodeBaseItem(
+                "Backdrop", "Create Backdrop for your Graph", f"{ICON_PATH}/type_generic_dark.svg", "Backdrop"
             ),
         ]
 

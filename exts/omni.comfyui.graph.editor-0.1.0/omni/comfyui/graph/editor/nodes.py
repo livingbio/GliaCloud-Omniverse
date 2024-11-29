@@ -133,6 +133,22 @@ class GraphNode(CompoundNode):
         self.type = "Graph"
 
 
+class LoadCheckpointNode(Node):
+    def __init__(self, name: str, parent=None):
+        super().__init__(name, parent)
+        self._children: List[Node] = []
+        self.type = "LoadCheckpoint"
+
+        self._in_ports = [
+            Port("input:ckpt_name", "str", self),
+        ]
+        self._out_ports = [
+            Port("output:model", "model", self),
+            Port("output:clip", "model", self),
+            Port("output:vae", "model", self),
+        ]
+
+
 class TextureNode(Node):
     """Special texture node"""
 

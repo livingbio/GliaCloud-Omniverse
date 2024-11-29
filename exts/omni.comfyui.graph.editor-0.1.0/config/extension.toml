@@ -20,9 +20,30 @@ icon = "icons/icon.svg"
 "omni.kit.graph.delegate.default" = {}
 "omni.kit.graph.delegate.modern" = {}
 "omni.kit.graph.delegate.neo" = {}
+"omni.kit.menu.edit" = {}
+"omni.kit.actions.core" = {}
+"omni.services.core" = {}
+"omni.services.transport.server.http" = {}
+"omni.usd" = {}
 
 [[python.module]]
 name = "omni.comfyui.graph.editor"
+
+[settings.exts."omni.comfyui.graph.editor"]
+# URL prefix where the service will be mounted, where our API will be available to handle incoming requests.
+#
+# Defining this as a setting makes it easy to change or rebrand the endpoint using only command-line or KIT-file
+# configuration instructions, should extensions ever feature conflicting endpoint naming conventions.
+url_prefix = "/viewport-capture"
+
+# Path from where the captured images will be served from, when exposed to clients.
+#
+# This path will be mounted as a child of the `url_prefix` setting, and expressed as a formatted join of the
+# `{url_prefix}{capture_path}` settings.
+capture_path = "/static"
+
+# Name of the directory on the server where captured images will be stored:
+capture_directory = "captured_stage_images"
 
 [[test]]
 dependencies = [
@@ -30,7 +51,7 @@ dependencies = [
     "omni.kit.renderer.capture",
     "omni.kit.renderer.core",
     "omni.kit.graph.editor.example",
-    "omni.kit.graph.editor.core"
+    "omni.kit.graph.editor.core",
 ]
 
 args = [

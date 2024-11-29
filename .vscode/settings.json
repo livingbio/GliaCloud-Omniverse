@@ -189,6 +189,7 @@
         "${workspaceFolder}/app/extscache/omni.kit.painter_link-204.0.4",
         "${workspaceFolder}/app/extscache/omni.kit.pipapi-0.0.0+ece658d9",
         "${workspaceFolder}/app/extscache/omni.kit.pip_archive-0.0.0+ece658d9.wx64",
+        "${workspaceFolder}/app/extscache/omni.kit.pip_archive-0.0.0+ece658d9.wx64/pip_prebundle",
         "${workspaceFolder}/app/extscache/omni.kit.playlist.core-1.3.1",
         "${workspaceFolder}/app/extscache/omni.kit.pointclouds-1.1.2+cp310",
         "${workspaceFolder}/app/extscache/omni.kit.preferences.animation-1.1.0+105.1.ub3f",

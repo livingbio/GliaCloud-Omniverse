@@ -202,7 +202,6 @@ class ReshadeMenuHookExt(omni.ext.IExt):
         return self._presets_dict
 
     def _get_directory_list(self, path):
-        # carb.log_warn("")
         def listdir_fullpath(d):
             return [os.path.join(d, f) for f in os.listdir(d)]
 
