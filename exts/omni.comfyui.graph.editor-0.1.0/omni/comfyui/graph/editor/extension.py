@@ -17,7 +17,7 @@ from .services.viewport_capture import router
 # For convenience, let's also reuse the utility methods we already created to handle and format the storage location of
 # the captured images so they can be accessed by clients using the server, once API responses are issued from our
 # Service:
-from .utils import get_captured_image_directory, get_captured_image_path
+from .ext_utils import get_setting_service_path, get_local_resource_directory, get_full_resource_path
 
 from omni.services.core import main
 from omni.kit.graph.editor.core.graph_editor_core_tree_delegate import GraphEditorCoreTreeDelegate
@@ -32,10 +32,6 @@ class ComfyUIEditorExtension(omni.ext.IExt):
     MENU_PATH = f"Window/GliaCloud Custom/{WINDOW_NAME}"
 
     def on_startup(self, ext_id):
-        """Create the graph window"""
-
-        carb.log_warn(f"{ext_id} extension started")
-
         global _global_instance
         _global_instance = self
 
@@ -46,27 +42,25 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         _settings = carb.settings.get_settings()
         _settings.set("exts/omni.comfyui.graph.editor/_ext_id", str(ext_id))
 
-        # At this point, we register our Service's `router` under the prefix we gave our API using the settings system,
+        # At this point, we register our Service's `router` under the path we gave our API using the settings system,
         # to facilitate its configuration and to ensure it is unique from all other extensions we may have enabled:
-        url_prefix = _settings.get_as_string(f"exts/{omni.comfyui.graph.editor}/url_prefix")
+        _path = get_setting_service_path()
         main.register_router(
             router=router,
-            prefix=url_prefix,
-            tags=["Viewport capture"],
+            prefix=_path,
         )
 
-        # Proceed to create a temporary directory in the Omniverse application file hierarchy where captured stage
+        # Proceed to create a temporary directory in the USD Composer application file hierarchy where captured stage
         # images will be stored, until the application is shut down:
-        captured_stage_images_directory = get_captured_image_directory()
-        if not os.path.exists(captured_stage_images_directory):
-            os.makedirs(captured_stage_images_directory)
+        _local_resource_directory = get_local_resource_directory()
+        if not os.path.exists(_local_resource_directory):
+            os.makedirs(_local_resource_directory)
 
         # Register this location as a mount, so its content is served by the web server bundled with the Omniverse
         # application instance, thus making the captured image available on the network:
         main.register_mount(
-            path=get_captured_image_path(),
-            app=StaticFiles(directory=captured_stage_images_directory, html=True),
-            name="captured-stage-images",
+            path=get_full_resource_path(),
+            app=StaticFiles(directory=_local_resource_directory, html=True)
         )
 
         # Registers the callback to create our window in omni.ui. Useful for if we want to use QuickLayout.
@@ -119,8 +113,9 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         # also deregister our Service's `router` in order to avoid our API being erroneously advertised as present as
         # part of the OpenAPI specification despite our handler function no longer being available:
         main.deregister_router(router=router)
-        
-        main.deregister_mount(path=get_captured_image_path())
+        carb.log_warn("has been called")
+
+        main.deregister_mount(path=get_full_resource_path())
 
     def _is_window_focused(self) -> bool:
         """Returns True if the example Graph window exists and focused"""

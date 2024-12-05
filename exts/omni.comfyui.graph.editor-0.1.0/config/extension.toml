@@ -25,25 +25,30 @@ icon = "icons/icon.svg"
 "omni.services.core" = {}
 "omni.services.transport.server.http" = {}
 "omni.usd" = {}
+"omni.kit.viewport.utility" = {}
 
 [[python.module]]
 name = "omni.comfyui.graph.editor"
 
 [settings.exts."omni.comfyui.graph.editor"]
-# URL prefix where the service will be mounted, where our API will be available to handle incoming requests.
-#
-# Defining this as a setting makes it easy to change or rebrand the endpoint using only command-line or KIT-file
+# Path where the viewport capture endpoints will be mounted and available to handle incoming requests.
+
+# Defining this as a setting makes it easy to change or rebrand our service using only command-line or KIT-file
 # configuration instructions, should extensions ever feature conflicting endpoint naming conventions.
-url_prefix = "/viewport-capture"
+service_path = "/viewport-capture"
 
-# Path from where the captured images will be served from, when exposed to clients.
+# Service resource subpath.
 #
-# This path will be mounted as a child of the `url_prefix` setting, and expressed as a formatted join of the
-# `{url_prefix}{capture_path}` settings.
-capture_path = "/static"
-
-# Name of the directory on the server where captured images will be stored:
-capture_directory = "captured_stage_images"
+# This path will always be a child of the `service_path` setting, and expressed as a formatted join, like so:
+# f`{service_path}{service_resource_subpath}`
+#
+# This joined path will help set two values for our service:
+#   1. The location on the server where captured images will be stored and retrieved by the webserver once mounted. Currently, this location is a subdirectory 
+#   (determined by these settings) within USD Composer's predetermined ${temp} folder. 
+#
+#   2. The url that the images will be publically available. Currently, this url is an endpoint
+#   (determined by these settings) served through 'localhost:8111'.
+service_resource_subpath = "/static"
 
 [[test]]
 dependencies = [

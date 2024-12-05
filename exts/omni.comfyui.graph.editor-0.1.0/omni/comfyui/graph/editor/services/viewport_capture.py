@@ -6,7 +6,7 @@ import carb
 
 from omni.services.core import routers
 
-from ..utils import capture_viewport, get_service_prefix
+from ..ext_utils import capture_viewport
 
 
 router = routers.ServiceAPIRouter()
@@ -43,10 +43,10 @@ class ViewportCaptureResponseModel(BaseModel):
         title="Capture status",
         description="Status of the capture of the given USD stage.",
     )
-    captured_image_path: Optional[str] = Field(
+    output_url_path: Optional[str] = Field(
         default=None,
-        title="Captured image path",
-        description="Path of the captured image, hosted on the current server.",
+        title="Output URL Path",
+        description="The URL path where the captured image will be served from",
     )
     error_message: Optional[str] = Field(
         default=None,
@@ -58,21 +58,22 @@ class ViewportCaptureResponseModel(BaseModel):
 # Using the `@router` annotation, we'll tag our `capture` function handler to document the responses and path of the
 # API, once again using the OpenAPI specification format.
 @router.post(
-    path=get_service_prefix(),
+    path="/simple-capture",
     summary="Capture a given USD stage",
     description="Capture a given USD stage as an image.",
     response_model=ViewportCaptureResponseModel,
+    tags=["Viewport Capture"],
 )
-async def capture(
+async def simple_capture(
     request: ViewportCaptureRequestModel,
 ) -> ViewportCaptureResponseModel:
     # For now, let's just print incoming request to the log to confirm all components of our extension are properly
     # wired together:
     carb.log_warn(f'Received a request to capture an image of "{request.usd_stage_path}".')
-    success, captured_image_path, error_message = await capture_viewport(usd_stage_path=request.usd_stage_path)
+    success, output_url_path, error_message = await capture_viewport(usd_stage_path=request.usd_stage_path)
 
     return ViewportCaptureResponseModel(
         success=success,
-        captured_image_path=captured_image_path,
+        output_url_path=output_url_path,
         error_message=error_message,
     )

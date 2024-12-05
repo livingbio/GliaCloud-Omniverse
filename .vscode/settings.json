@@ -449,6 +449,7 @@
         "${workspaceFolder}/app/extscache/omni.services.facilities.base-1.0.4",
         "${workspaceFolder}/app/extscache/omni.services.facilities.workqueue-1.1.2",
         "${workspaceFolder}/app/extscache/omni.services.pip_archive-0.13.1+wx64",
+        "${workspaceFolder}/app/extscache/omni.services.pip_archive-0.13.1+wx64/pip_prebundle",
         "${workspaceFolder}/app/extscache/omni.services.starfleet.auth-0.1.5",
         "${workspaceFolder}/app/extscache/omni.services.streamclient.webrtc-1.3.8",
         "${workspaceFolder}/app/extscache/omni.services.streamclient.websocket-2.0.0",
@@ -520,7 +521,7 @@
         "${workspaceFolder}/app/kit/extscore/omni.assets.plugins",
         "${workspaceFolder}/app/kit/extscore/omni.client",
         "${workspaceFolder}/app/kit/extscore/omni.kit.async_engine",
-        "${workspaceFolder}/app/kit/extscore/omni.kit.registry.nucleus",
+        "${workspaceFolder}/app/kit/extscore/omni.kit.registry.nucleus"
     ],
 
     // Python & Pylance Setup

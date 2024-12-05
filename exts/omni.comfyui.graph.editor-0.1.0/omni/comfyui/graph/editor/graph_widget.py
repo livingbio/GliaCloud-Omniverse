@@ -17,6 +17,8 @@ from functools import partial
 from .simple_model import SimpleGraphModel
 from .node_registry_model import NodeRegistryModel
 
+from .test import get_current_viewport
+
 CURRENT_PATH = Path(__file__).parent
 EXT_PATH = CURRENT_PATH.parent.parent.parent.parent
 ICON_PATH = EXT_PATH.joinpath("icons")
@@ -347,7 +349,7 @@ class GraphWidget(GraphEditorCoreWidget):
                         image_height=ICON_SIZE,
                         image_url=f"{ICON_PATH}/type_scene_graph_dark.svg",
                         spacing=5,
-                        clicked_fn=self.open_graph,
+                        clicked_fn=get_current_viewport,
                     )
                     # 20 because the button's padding is 10
                     ui.Label("    OR    ", name="OR", width=0, height=ICON_SIZE + 20)
