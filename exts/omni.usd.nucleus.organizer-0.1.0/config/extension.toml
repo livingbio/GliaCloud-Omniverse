@@ -47,9 +47,7 @@ preview_image = "data/preview.png"
 name = "omni.usd.nucleus.organizer"
 
 [settings.exts."omni.usd.nucleus.organizer"]
-_ext_id = ""
-_ext_path = ""
-_data_path = ""
+ext_id = ""
 window_state = ""
 
 [[test]]
