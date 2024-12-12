@@ -17,8 +17,6 @@ from functools import partial
 from .simple_model import SimpleGraphModel
 from .node_registry_model import NodeRegistryModel
 
-from .test import get_current_viewport
-
 CURRENT_PATH = Path(__file__).parent
 EXT_PATH = CURRENT_PATH.parent.parent.parent.parent
 ICON_PATH = EXT_PATH.joinpath("icons")
@@ -331,6 +329,8 @@ class GraphWidget(GraphEditorCoreWidget):
         """this is an override for the function in base Class while building the graph
         we define the graph model with serializing a json file
         """
+        from .ext_utils import test, cancel_capture
+
         with ui.ZStack():
             ICON_SIZE = 120
             # Background
@@ -349,7 +349,7 @@ class GraphWidget(GraphEditorCoreWidget):
                         image_height=ICON_SIZE,
                         image_url=f"{ICON_PATH}/type_scene_graph_dark.svg",
                         spacing=5,
-                        clicked_fn=get_current_viewport,
+                        clicked_fn=test,
                     )
                     # 20 because the button's padding is 10
                     ui.Label("    OR    ", name="OR", width=0, height=ICON_SIZE + 20)
@@ -361,7 +361,7 @@ class GraphWidget(GraphEditorCoreWidget):
                         image_height=ICON_SIZE,
                         image_url=f"{ICON_PATH}/type_scene_graph_dark.svg",
                         spacing=5,
-                        clicked_fn=self.create_graph,
+                        clicked_fn=cancel_capture,
                     )
                     ui.Spacer()
                 ui.Spacer()

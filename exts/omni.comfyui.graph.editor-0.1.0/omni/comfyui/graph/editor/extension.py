@@ -17,12 +17,13 @@ from .services.viewport_capture import router
 # For convenience, let's also reuse the utility methods we already created to handle and format the storage location of
 # the captured images so they can be accessed by clients using the server, once API responses are issued from our
 # Service:
-from .ext_utils import get_setting_service_path, get_local_resource_directory, get_full_resource_path
+from . import ext_utils
 
 from omni.services.core import main
 from omni.kit.graph.editor.core.graph_editor_core_tree_delegate import GraphEditorCoreTreeDelegate
 
 _global_instance = None
+count = 0
 
 
 class ComfyUIEditorExtension(omni.ext.IExt):
@@ -40,27 +41,28 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
         # store extension id in Carbonite
         _settings = carb.settings.get_settings()
-        _settings.set("exts/omni.comfyui.graph.editor/_ext_id", str(ext_id))
+        _settings.set("exts/omni.comfyui.graph.editor/ext_id", str(ext_id))
 
         # At this point, we register our Service's `router` under the path we gave our API using the settings system,
         # to facilitate its configuration and to ensure it is unique from all other extensions we may have enabled:
-        _path = get_setting_service_path()
+        _path = ext_utils.get_setting_service_path()
+        global count
         main.register_router(
             router=router,
             prefix=_path,
         )
+        count += 1
 
         # Proceed to create a temporary directory in the USD Composer application file hierarchy where captured stage
         # images will be stored, until the application is shut down:
-        _local_resource_directory = get_local_resource_directory()
+        _local_resource_directory = ext_utils.get_local_resource_directory()
         if not os.path.exists(_local_resource_directory):
             os.makedirs(_local_resource_directory)
 
         # Register this location as a mount, so its content is served by the web server bundled with the Omniverse
         # application instance, thus making the captured image available on the network:
         main.register_mount(
-            path=get_full_resource_path(),
-            app=StaticFiles(directory=_local_resource_directory, html=True)
+            path=ext_utils.get_full_resource_path(), app=StaticFiles(directory=_local_resource_directory, html=True)
         )
 
         # Registers the callback to create our window in omni.ui. Useful for if we want to use QuickLayout.
@@ -109,13 +111,19 @@ class ComfyUIEditorExtension(omni.ext.IExt):
             self._window.destroy()
             self._window = None
 
+        _path = ext_utils.get_setting_service_path()
         # When disabling the extension or shutting down the instance of the Omniverse application, let's make sure we
         # also deregister our Service's `router` in order to avoid our API being erroneously advertised as present as
         # part of the OpenAPI specification despite our handler function no longer being available:
-        main.deregister_router(router=router)
-        carb.log_warn("has been called")
+        main.deregister_router(
+            router=router,
+            prefix=_path,
+        )
 
-        main.deregister_mount(path=get_full_resource_path())
+        main.deregister_mount(path=ext_utils.get_full_resource_path())
+
+        global count
+        count = 0
 
     def _is_window_focused(self) -> bool:
         """Returns True if the example Graph window exists and focused"""
