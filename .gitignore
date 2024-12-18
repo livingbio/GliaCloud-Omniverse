@@ -10,3 +10,7 @@ _*/
 /.vs
 
 /app
+
+**/data/test
+**/data/replicator
+**/data/rep_vis

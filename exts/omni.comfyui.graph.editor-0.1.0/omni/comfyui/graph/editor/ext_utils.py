@@ -136,7 +136,7 @@ async def capture_viewport(response) -> Tuple[bool, Optional[str], Optional[str]
             break
 
         try:
-            _helper = omni.kit.viewport.utility.capture_viewport_to_file(viewport_api=viewport, file_path=_temp_path)
+            _helper = omni.kit.viewport.utility.capture_viewport_to_file(viewport_api=viewport, file_path=_temp_path, )
             
             # waits for viewport to be active
             await _helper.wait_for_result()
@@ -169,9 +169,14 @@ async def capture_viewport(response) -> Tuple[bool, Optional[str], Optional[str]
 def test():
     capture_extension = omni.kit.capture.viewport.CaptureExtension.get_instance()
     capture_extension.show_default_progress_window = False
-    capture_extension.options.output_folder = os.path.join(get_extension_data_path(), "test").replace(os.sep, "/")
-    capture_extension.options.file_name = "tester"
+    capture_extension.forward_one_frame_fn = None
+    capture_extension.options.output_folder = get_local_resource_directory()
+    capture_extension.options.file_name = "sequence"
     capture_extension.options.file_type = ".mp4"
+    capture_extension.options.end_frame = 80
+
+    capture_extension.options.res_width = 1920
+    capture_extension.options.res_height = 1080
     capture_extension.start()
 
 def cancel_capture():

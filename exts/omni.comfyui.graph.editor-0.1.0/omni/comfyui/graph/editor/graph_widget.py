@@ -330,6 +330,7 @@ class GraphWidget(GraphEditorCoreWidget):
         we define the graph model with serializing a json file
         """
         from .ext_utils import test, cancel_capture
+        from .use_replicator import setup
 
         with ui.ZStack():
             ICON_SIZE = 120
@@ -342,14 +343,14 @@ class GraphWidget(GraphEditorCoreWidget):
                     ICON_SIZE = 120
                     ui.Spacer()
                     ui.Button(
-                        "Open Graph",
+                        "Trigger Replicator",
                         name="Open Graph",
                         width=0,
                         image_width=ICON_SIZE,
                         image_height=ICON_SIZE,
                         image_url=f"{ICON_PATH}/type_scene_graph_dark.svg",
                         spacing=5,
-                        clicked_fn=test,
+                        clicked_fn=setup,
                     )
                     # 20 because the button's padding is 10
                     ui.Label("    OR    ", name="OR", width=0, height=ICON_SIZE + 20)

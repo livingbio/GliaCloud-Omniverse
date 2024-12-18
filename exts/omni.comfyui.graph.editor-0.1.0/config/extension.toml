@@ -26,6 +26,7 @@ icon = "icons/icon.svg"
 "omni.services.transport.server.http" = {}
 "omni.usd" = {}
 "omni.kit.viewport.utility" = {}
+"omni.replicator.core" = {}
 
 [[python.module]]
 name = "omni.comfyui.graph.editor"
