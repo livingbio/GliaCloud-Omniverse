@@ -3,15 +3,16 @@ __all__ = ["ComfyUIEditorExtension"]
 import omni.ext
 import omni.ui as ui
 import omni.kit.ui
+from omni.services.core import main
 
 import asyncio
 from functools import partial
 import carb
 import os
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from .editor_window import ComfyUIWindow
-from .node_registry_model import NodeRegistryQuickSearchModel
 from .services.viewport_capture import router
 
 # For convenience, let's also reuse the utility methods we already created to handle and format the storage location of
@@ -19,11 +20,7 @@ from .services.viewport_capture import router
 # Service:
 from . import ext_utils
 
-from omni.services.core import main
-from omni.kit.graph.editor.core.graph_editor_core_tree_delegate import GraphEditorCoreTreeDelegate
-
 _global_instance = None
-count = 0
 
 
 class ComfyUIEditorExtension(omni.ext.IExt):
@@ -31,6 +28,9 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
     WINDOW_NAME = "ComfyUI Graph Editor"
     MENU_PATH = f"Window/GliaCloud Custom/{WINDOW_NAME}"
+
+    COMFY_NODES_FILE_PATH = str(Path(__file__).parent.joinpath('omni_nodes.py'))
+    COMFY_INSTALLATION_PATH = "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/ComfyUI"
 
     def on_startup(self, ext_id):
         global _global_instance
@@ -46,12 +46,11 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         # At this point, we register our Service's `router` under the path we gave our API using the settings system,
         # to facilitate its configuration and to ensure it is unique from all other extensions we may have enabled:
         _path = ext_utils.get_setting_service_path()
-        global count
+
         main.register_router(
             router=router,
             prefix=_path,
         )
-        count += 1
 
         # Proceed to create a temporary directory in the USD Composer application file hierarchy where captured stage
         # images will be stored, until the application is shut down:
@@ -77,27 +76,13 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
         self.show_window(None, True)
 
-        # Quick Search subscription
-        self._sub = None
-
-        _app = omni.kit.app.get_app_interface()
-        _ext_manager = _app.get_extension_manager()
-        self.__extensions_subscription = []
-
-        self.__extensions_subscription.append(
-            _ext_manager.subscribe_to_extension_enable(
-                partial(self._on_extensions_changed, True),
-                partial(self._on_extensions_changed, False),
-                ext_name="omni.kit.window.quicksearch",
-                hook_name="omni.comfyui.graph.editor listener",
-            )
-        )
+        self._startup_comfy(self.COMFY_INSTALLATION_PATH)
 
     def on_shutdown(self):
         global _global_instance
         _global_instance = None
 
-        self.__extensions_subscription = None
+        self._shutdown_comfy(self.COMFY_INSTALLATION_PATH)
 
         # deregister quick search model
         if self._sub is not None:
@@ -124,6 +109,18 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
         global count
         count = 0
+
+    def _startup_comfy(self, comfy_path):
+        carb.log_warn("starting comfy")
+        _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
+        carb.log_warn(self.COMFY_NODES_FILE_PATH)
+
+        os.symlink(self.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
+
+    def _shutdown_comfy(self, comfyui_path):
+        _comfyui_custom_node_file_path = os.path.join(comfyui_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
+
+        os.unlink(_comfyui_custom_node_file_path)
 
     def _is_window_focused(self) -> bool:
         """Returns True if the example Graph window exists and focused"""
@@ -158,43 +155,6 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         if not visible:
             # Destroy the window, since we are creating new window in show_window
             asyncio.ensure_future(self._destroy_window_async(visible))
-
-    @staticmethod
-    def add_node(mime_data: str):
-        """Adds a node to the current ComfyUI Graph window"""
-        if not _global_instance:
-            return
-
-        self = _global_instance
-        if not self._window:
-            return
-
-        class CustomEvent:
-            def __init__(self, mime_data):
-                self.mime_data = mime_data
-                self.x = None
-                self.y = None
-
-        if self._window._main_widget:
-            self._window._main_widget.on_drop(CustomEvent(mime_data))
-
-    def _on_extensions_changed(self, loaded: bool, _ext_id: str):
-        """Called when the Quick Search extension is loaded/unloaded"""
-        if loaded:
-            from omni.kit.window.quicksearch import QuickSearchRegistry
-
-            # Register simple model in Quick Search
-            self._sub = QuickSearchRegistry().register_quick_search_model(
-                "Graph editor nodes",
-                NodeRegistryQuickSearchModel,
-                GraphEditorCoreTreeDelegate,
-                accept_fn=self._is_window_focused,
-                priority=0,
-            )
-        else:
-            # Deregister simple model in Quick Search
-            del self._sub
-            self._sub = None
 
     @staticmethod
     def get_instance():

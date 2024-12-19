@@ -177,7 +177,26 @@ def test():
 
     capture_extension.options.res_width = 1920
     capture_extension.options.res_height = 1080
-    capture_extension.start()
+
+    options_dict = capture_extension.options.to_dict()
+    options_str = ''
+    for k, v in options_dict.items():
+        options_str += f'{k}: {v}\n'
+
+    carb.log_warn(options_str)
+
+    # capture_extension.start()
+
+    import requests
+
+    url = "https://api.comfy.org/publishers/mialana/nodes"
+
+    headers = {"Authorization": "Bearer 93531bdf-e314-4a0e-b6d6-8ea0f3234723"}
+
+    response = requests.request("GET", url, headers=headers)
+
+    carb.log_warn(response.text)
+
 
 def cancel_capture():
     capture_extension = omni.kit.capture.viewport.CaptureExtension.get_instance()

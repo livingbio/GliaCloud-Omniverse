@@ -1,14 +1,14 @@
 [package]
-title = "ComfyUI Graph Editor"
-description = "A built-in ComfyUI graph editor and Graph Model for the Omniverse platform"
+title = "Omniverse ComfyUI Connector Core"
+description = "An Omniverse extension for ComfyUI interaction."
 version = "0.1.0"
 authors = ["GliaCloud"]
 repository = ""
-keywords = ["graph", "ai", "editor"]
+keywords = ["connector", "ai", "window", "service"]
 changelog = "docs/CHANGELOG.md"
 preview_image = "data/preview.png"
 readme = "docs/README.md"
-category = "Kit"
+category = "internal"
 icon = "icons/icon.svg"
 
 [dependencies]
@@ -29,9 +29,9 @@ icon = "icons/icon.svg"
 "omni.replicator.core" = {}
 
 [[python.module]]
-name = "omni.comfyui.graph.editor"
+name = "omni.comfyui.connector.core"
 
-[settings.exts."omni.comfyui.graph.editor"]
+[settings.exts."omni.comfyui.connector.core"]
 # Path where the viewport capture endpoints will be mounted and available to handle incoming requests.
 
 # Defining this as a setting makes it easy to change or rebrand our service using only command-line or KIT-file
