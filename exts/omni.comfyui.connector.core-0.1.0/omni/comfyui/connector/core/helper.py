@@ -1,10 +1,9 @@
 import numpy as np
 import os
-import json
 from PIL import Image
 import hashlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import matplotlib.pyplot as plt  # type: ignore #
+import matplotlib.patches as patches  # type: ignore #
 
 
 def data_to_colour(data):
@@ -63,8 +62,8 @@ def colorize_depth(depth_data):
 
     return Image.fromarray(depth_data_uint8)
 
-output_dir = "C:/Users/gliacloud/Documents/GliaCloud-Omniverse/exts/omni.comfyui.graph.editor-0.1.0/data/replicator"
-vis_out_dir = "C:/Users/gliacloud/Documents/GliaCloud-Omniverse/exts/omni.comfyui.graph.editor-0.1.0/data/rep_vis"
+output_dir = "C:/Users/gliacloud/Documents/GliaCloud-Omniverse/exts/omni.comfyui.connector.core-0.1.0/data/replicator"
+vis_out_dir = "C:/Users/gliacloud/Documents/GliaCloud-Omniverse/exts/omni.comfyui.connector.core-0.1.0/data/rep_vis"
 
 if not os.path.exists(vis_out_dir):
     os.makedirs(vis_out_dir)

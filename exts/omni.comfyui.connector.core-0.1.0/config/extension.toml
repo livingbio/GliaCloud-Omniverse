@@ -27,6 +27,7 @@ icon = "icons/icon.svg"
 "omni.usd" = {}
 "omni.kit.viewport.utility" = {}
 "omni.replicator.core" = {}
+"omni.pip.torch" = {}
 
 [[python.module]]
 name = "omni.comfyui.connector.core"

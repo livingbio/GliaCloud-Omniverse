@@ -1,9 +1,10 @@
-__all__ = ["ComfyUIWindow"]
-
 import omni.ui as ui
 import omni.kit.app
 
 import asyncio
+import carb
+
+from .use_replicator import setup
 
 
 class ComfyUIWindow(ui.Window):
@@ -38,4 +39,4 @@ class ComfyUIWindow(ui.Window):
 
     def on_build_window(self):
         with ui.ScrollingFrame():
-            ui.Label("Window")
+            ui.Button("Trigger Replicator", clicked_fn=setup, height=ui.Percent(0.1))

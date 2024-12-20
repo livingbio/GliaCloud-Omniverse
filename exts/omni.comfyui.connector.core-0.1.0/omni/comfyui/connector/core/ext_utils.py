@@ -84,7 +84,7 @@ def get_local_resource_directory() -> str:
 def get_extension_data_path() -> str:
     manager = omni.kit.app.get_app().get_extension_manager()
     settings = carb.settings.get_settings()
-    ext_id = settings.get_as_string("exts/omni.comfyui.graph.editor/ext_id")
+    ext_id = settings.get_as_string("exts/omni.comfyui.connector.core/ext_id")
     ext_path = manager.get_extension_path(ext_id)
     return os.path.join(ext_path, "data")
 

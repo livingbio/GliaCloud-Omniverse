@@ -1,1 +1,1 @@
-from .extension import ComfyUIEditorExtension
+from .extension import ComfyUIConnectorExtension

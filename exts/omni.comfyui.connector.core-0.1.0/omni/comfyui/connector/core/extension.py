@@ -1,5 +1,3 @@
-__all__ = ["ComfyUIEditorExtension"]
-
 import omni.ext
 import omni.ui as ui
 import omni.kit.ui
@@ -12,7 +10,7 @@ import os
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from .editor_window import ComfyUIWindow
+from .window import ComfyUIWindow
 from .services.viewport_capture import router
 
 # For convenience, let's also reuse the utility methods we already created to handle and format the storage location of
@@ -23,16 +21,17 @@ from . import ext_utils
 _global_instance = None
 
 
-class ComfyUIEditorExtension(omni.ext.IExt):
-    """Comfy UI Graph Editor Extension"""
+class ComfyUIConnectorExtension(omni.ext.IExt):
+    """Comfy UI Connector Extension"""
 
-    WINDOW_NAME = "ComfyUI Graph Editor"
+    WINDOW_NAME = "ComfyUI"
     MENU_PATH = f"Window/GliaCloud Custom/{WINDOW_NAME}"
 
     COMFY_NODES_FILE_PATH = str(Path(__file__).parent.joinpath('omni_nodes.py'))
     COMFY_INSTALLATION_PATH = "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/ComfyUI"
 
     def on_startup(self, ext_id):
+        carb.log_warn("Extension started")
         global _global_instance
         _global_instance = self
 
@@ -41,7 +40,7 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
         # store extension id in Carbonite
         _settings = carb.settings.get_settings()
-        _settings.set("exts/omni.comfyui.graph.editor/ext_id", str(ext_id))
+        _settings.set("exts/omni.comfyui.connector.core/ext_id", str(ext_id))
 
         # At this point, we register our Service's `router` under the path we gave our API using the settings system,
         # to facilitate its configuration and to ensure it is unique from all other extensions we may have enabled:
@@ -65,13 +64,13 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         )
 
         # Registers the callback to create our window in omni.ui. Useful for if we want to use QuickLayout.
-        ui.Workspace.set_show_window_fn(ComfyUIEditorExtension.WINDOW_NAME, partial(self.show_window, None))
+        ui.Workspace.set_show_window_fn(ComfyUIConnectorExtension.WINDOW_NAME, partial(self.show_window, None))
 
         # Adds our extension window to the application menu under MENU_PATH
         _editor_menu = omni.kit.ui.get_editor_menu()
         if _editor_menu:
             self._menu = _editor_menu.add_item(
-                ComfyUIEditorExtension.MENU_PATH, on_click=self.show_window, toggle=True, value=True
+                ComfyUIConnectorExtension.MENU_PATH, on_click=self.show_window, toggle=True, value=True
             )
 
         self.show_window(None, True)
@@ -83,11 +82,6 @@ class ComfyUIEditorExtension(omni.ext.IExt):
         _global_instance = None
 
         self._shutdown_comfy(self.COMFY_INSTALLATION_PATH)
-
-        # deregister quick search model
-        if self._sub is not None:
-            del self._sub
-            self._sub = None
 
         if self._menu:
             self._menu = None
@@ -107,24 +101,19 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
         main.deregister_mount(path=ext_utils.get_full_resource_path())
 
-        global count
-        count = 0
-
     def _startup_comfy(self, comfy_path):
-        carb.log_warn("starting comfy")
+        carb.log_warn("Starting Comfy")
         _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
-        carb.log_warn(self.COMFY_NODES_FILE_PATH)
 
-        os.symlink(self.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
+        if not os.path.isfile(_comfy_custom_node_path):
+            os.symlink(self.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
 
-    def _shutdown_comfy(self, comfyui_path):
-        _comfyui_custom_node_file_path = os.path.join(comfyui_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
+    def _shutdown_comfy(self, comfy_path):
+        _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
 
-        os.unlink(_comfyui_custom_node_file_path)
-
-    def _is_window_focused(self) -> bool:
-        """Returns True if the example Graph window exists and focused"""
-        return self._window and self._window.focused
+        if os.path.isfile(_comfy_custom_node_path):
+            os.unlink(_comfy_custom_node_path)
+        carb.log_warn("Shut down Comfy")
 
     def _on_menu_click(self, menu, toggled):
         self.show_window(menu, toggled)
@@ -135,7 +124,7 @@ class ComfyUIEditorExtension(omni.ext.IExt):
 
         editor_menu = omni.kit.ui.get_editor_menu()
         if editor_menu:
-            editor_menu.set_value(ComfyUIEditorExtension.MENU_PATH, visible)
+            editor_menu.set_value(ComfyUIConnectorExtension.MENU_PATH, visible)
 
         if self._window:
             self._window.destroy()
@@ -144,7 +133,7 @@ class ComfyUIEditorExtension(omni.ext.IExt):
     def show_window(self, _menu_path, show):
         if show:
             if self._window is None:
-                self._window = ComfyUIWindow(ComfyUIEditorExtension.WINDOW_NAME)
+                self._window = ComfyUIWindow(ComfyUIConnectorExtension.WINDOW_NAME)
                 self._window.set_visibility_changed_fn(self._visiblity_changed_fn)
         elif self._window:
             self._window.visible = False

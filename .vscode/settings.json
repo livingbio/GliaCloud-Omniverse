@@ -5,9 +5,14 @@
     "editor.rulers": [
         120
     ],
+
     // Python modules search paths:
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/exts/omni.comfyui.graph.editor-0.1.0",
+        "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/python_embeded/Lib/site-packages",
+        "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/python_embeded",
+        "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/python_embeded/python312.zip",
+        "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/ComfyUI",
+        "${workspaceFolder}/exts/omni.connector.core-0.1.0",
         "${workspaceFolder}/exts/omni.example.airoomgenerator",
         "${workspaceFolder}/exts/omni.kit.browser.reshade-0.3.12",
         "${workspaceFolder}/exts/omni.kit.window.reshade_editor-0.2.1",
