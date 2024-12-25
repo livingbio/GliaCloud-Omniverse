@@ -7,8 +7,11 @@ import carb
 import asyncio
 import numpy as np
 import torch
+import json
+import io
+import base64
 
-from .ext_utils import get_extension_data_path
+from .ext_utils import get_extension_data_path, get_local_resource_directory, get_full_resource_path, join_with_replace
 
 async def run():
 
@@ -16,13 +19,12 @@ async def run():
     if not _viewport or _viewport.frame_info.get("viewport_handle", None) is None:
         return
 
-    rep.settings.set_render_rtx_realtime()
+    rep.settings.set_render_pathtraced(samples_per_pixel=64)
 
     active_camera_path = _viewport.camera_path
 
     _ext_data_path = get_extension_data_path()
-    replicator_data_path = os.path.join(_ext_data_path, "replicator3").replace(os.sep, "/")
-    carb.log_warn(replicator_data_path)
+    replicator_data_path = join_with_replace(_ext_data_path, "replicator")
 
     render_product = rep.create.render_product(active_camera_path, (1920, 1080))
 
@@ -35,16 +37,19 @@ async def run():
         anno.attach(render_product)
         annotators[name] = anno
 
-    rgb_data_list = []
+    all_rgb_data = []
     normals_data_list = []
 
-    for frame_id in range(60):
+    for frame_id in range(10):
         await rep.orchestrator.step_async()
 
-        rgb_data = annotators["rgb"].get_data()
-        rgb_data_list.append(rgb_data)
+        rgba_data = annotators["rgb"].get_data()
 
-        backend.write_image("rgb_" + str(frame_id) + ".png", rgb_data)
+        backend.write_image("rgb_" + str(frame_id) + ".png", rgba_data)
+        rgb_data = rgba_data[:, :, :3]
+        rgb_data = rgb_data / 255.0
+
+        all_rgb_data.append(rgb_data)
 
         normals_data = annotators["normals"].get_data()
         colorized_normals_data = colorize_normals(normals_data)
@@ -52,16 +57,14 @@ async def run():
 
         # backend.write_image("normals_" + str(frame_id) + ".png", colorized_normals_data)
 
-        backend.wait_until_done()
-
     rep.orchestrator.stop()
 
-    rgb_data_stack = np.stack(rgb_data_list, axis=0)
+    rgb_data_stack = np.stack(all_rgb_data, axis=0)
+    carb.log_warn(f'numpy array shape: {rgb_data_stack.shape}, numpy array datatype: {rgb_data_stack.dtype}')
+    rgb_data_path = join_with_replace(_ext_data_path, "replicator/rgb.npy")
+    carb.log_warn(f'rgb data path: {rgb_data_path}')
+    np.save(rgb_data_path, arr=rgb_data_stack, allow_pickle=False)
 
-    rgb_tensor = torch.tensor(rgb_data_stack)
+    carb.log_warn(f"rgb output: {rgb_data_path}")
 
-    carb.log_warn(rgb_tensor.shape)
-    carb.log_warn(rgb_tensor.dtype)
-
-def setup():
-    asyncio.ensure_future(run())
+    return {"rgb": rgb_data_path}

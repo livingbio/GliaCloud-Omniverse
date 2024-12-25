@@ -201,3 +201,6 @@ def test():
 def cancel_capture():
     capture_extension = omni.kit.capture.viewport.CaptureExtension.get_instance()
     capture_extension.progress._capture_status = omni.kit.capture.viewport.CaptureStatus.TO_START_ENCODING
+
+def join_with_replace(path1: str, path2: str) -> str:
+    return os.path.join(path1, path2).replace(os.sep, "/")

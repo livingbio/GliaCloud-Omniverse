@@ -5,6 +5,7 @@ from PIL import Image, ImageOps
 import os
 from typing import Iterable
 import itertools
+import io
 from comfy.utils import common_upscale, ProgressBar
 from comfy.k_diffusion.utils import FolderOfImages
 
@@ -208,36 +209,48 @@ class OmniViewportRecordingNode:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE")
+    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE")
     RETURN_NAMES = ("rgb_out", "depth_out", "normals_out")
-    FUNCTION = "get_current_viewport"
+    FUNCTION = "get_viewport_recording"
     CATEGORY = "Omniverse"
 
-    def get_current_viewport(self):
+    def get_viewport_recording(self, num_frames_to_record, renderer):
 
         headers = {"Content-Type": "application/json"}
 
         url = "http://localhost:8111"
-        path = "/viewport-capture/simple-capture"
+        path = "/viewport-capture/viewport-record"
 
-        response = requests.post(f"{url}{path}", headers=headers)
+        response = requests.get(f"{url}{path}", headers=headers)
 
         if response.status_code != 200:
-            print(f"Request failed with status code {response.status_code}. Error: {response.text}")
-            return Image.new("RGB", (1920, 1080))
+            if response.status_code == 400:
+                print(f"Request failed with status code {response.status_code}")
+                print(f"Error message: {response.json()['details_message']}")
+                error_tensor = torch.full(size=(1, 1080, 1920, 4), fill_value=255, dtype=torch.uint8)
+                print(error_tensor.shape)
+                return error_tensor
+            else:
+                print(f"Request failed with status code {response.status_code}")
+                print(f"Error message: {response.text}")
+                error_tensor = torch.full(size=(1, 1080, 1920, 4), fill_value=255, dtype=torch.uint8)
+                print(error_tensor.shape)
+                return error_tensor
 
-        response_image_path = response.json()["output_url_path"]
-        image_url = f"{url}{response_image_path}"
+        rgb_output = response.json()["output_paths"]["rgb"]
+        print(rgb_output)
 
-        image = Image.open(requests.get(image_url, stream=True).raw)
-        image = ImageOps.exif_transpose(image)
-        image = image.convert("RGB")
-        image = np.array(image).astype(np.float32) / 255.0
-        image = torch.from_numpy(image)[None,]
-        return (image,)
+        data = np.load(rgb_output)
+        print(data.shape)
+        for col in data[0][0]:
+            print(col)
+
+        rgb_tensor = torch.from_numpy(data)
+
+        return (rgb_tensor, rgb_tensor, rgb_tensor, )
 
     @classmethod
-    def IS_CHANGED(cls):
+    def IS_CHANGED(cls, num_frames_to_record, renderer):
         return float("NaN")
 
 
@@ -355,13 +368,13 @@ class OmniViewportSemanticSegmentationNode:
 
 NODE_CLASS_MAPPINGS = {
     "OmniViewportFrameNode": OmniViewportFrameNode,
-    "OmniViewportSequenceNode": OmniViewportRecordingNode,
+    "OmniViewportRecordingNode": OmniViewportRecordingNode,
     "OmniViewportDepthNode": OmniViewportDepthNode,
     "OmniViewportSemanticSegmentationNode": OmniViewportSemanticSegmentationNode,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "OmniViewportFrameNode": "Screen Capture Omniverse Viewport",
-    "OmniViewportSequenceNode": "Screen Record Omniverse Viewport",
+    "OmniViewportRecordingNode": "Screen Record Omniverse Viewport",
     "OmniViewportDepthNode": "Retrieve Omniverse Depth Mask",
     "OmniViewportSemanticSegmentationNode": "Retrieve Omniverse Semantic Segmentation Mask",
 }

@@ -11,7 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from .window import ComfyUIWindow
-from .services.viewport_capture import router
+from .services.viewport_capture import router as capture_router
+from .services.viewport_record import router as record_router
 
 # For convenience, let's also reuse the utility methods we already created to handle and format the storage location of
 # the captured images so they can be accessed by clients using the server, once API responses are issued from our
@@ -47,7 +48,12 @@ class ComfyUIConnectorExtension(omni.ext.IExt):
         _path = ext_utils.get_setting_service_path()
 
         main.register_router(
-            router=router,
+            router=capture_router,
+            prefix=_path,
+        )
+
+        main.register_router(
+            router=record_router,
             prefix=_path,
         )
 
@@ -95,7 +101,12 @@ class ComfyUIConnectorExtension(omni.ext.IExt):
         # also deregister our Service's `router` in order to avoid our API being erroneously advertised as present as
         # part of the OpenAPI specification despite our handler function no longer being available:
         main.deregister_router(
-            router=router,
+            router=capture_router,
+            prefix=_path,
+        )
+
+        main.deregister_router(
+            router=record_router,
             prefix=_path,
         )
 
@@ -105,8 +116,10 @@ class ComfyUIConnectorExtension(omni.ext.IExt):
         carb.log_warn("Starting Comfy")
         _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
 
-        if not os.path.isfile(_comfy_custom_node_path):
-            os.symlink(self.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
+        if os.path.isfile(_comfy_custom_node_path):
+            os.unlink(_comfy_custom_node_path)
+
+        os.symlink(self.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
 
     def _shutdown_comfy(self, comfy_path):
         _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
