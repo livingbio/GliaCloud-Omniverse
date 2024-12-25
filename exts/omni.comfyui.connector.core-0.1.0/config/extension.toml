@@ -52,6 +52,10 @@ service_path = "/viewport-capture"
 #   (determined by these settings) served through 'localhost:8111'.
 service_resource_subpath = "/static"
 
+[python.pipapi]
+requirements = ["matplotlib"]
+use_online_index = true
+
 [[test]]
 dependencies = [
     "omni.kit.mainwindow",

@@ -527,7 +527,8 @@
         "${workspaceFolder}/app/kit/extscore/omni.client",
         "${workspaceFolder}/app/kit/extscore/omni.kit.async_engine",
         "${workspaceFolder}/app/kit/extscore/omni.kit.registry.nucleus",
-        "${workspaceFolder}/data/omni.replicator.core-1.10.10+105.1.wx64.r.cp310"
+        "${workspaceFolder}/data",
+        "C:/Users/gliacloud/AppData/Local/ov/data/Kit/USD.Composer/2023.2/pip3-envs/default"
     ],
 
     // Python & Pylance Setup

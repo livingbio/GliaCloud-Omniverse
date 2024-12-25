@@ -210,7 +210,11 @@ class OmniViewportRecordingNode:
         }
 
     RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE")
-    RETURN_NAMES = ("rgb_out", "depth_out", "normals_out")
+    RETURN_NAMES = (
+        "rgb_out",
+        "normals_out",
+        "depth_out",
+    )
     FUNCTION = "get_viewport_recording"
     CATEGORY = "Omniverse"
 
@@ -221,33 +225,35 @@ class OmniViewportRecordingNode:
         url = "http://localhost:8111"
         path = "/viewport-capture/viewport-record"
 
-        response = requests.get(f"{url}{path}", headers=headers)
+        renderer_shortname = "realtime" if (renderer == "RTX - Real-Time") else "pathtracing"
+
+        body = {"num_frames_to_record": num_frames_to_record, "renderer": renderer_shortname}
+
+        response = requests.get(f"{url}{path}", headers=headers, json=body)
 
         if response.status_code != 200:
-            if response.status_code == 400:
-                print(f"Request failed with status code {response.status_code}")
-                print(f"Error message: {response.json()['details_message']}")
-                error_tensor = torch.full(size=(1, 1080, 1920, 4), fill_value=255, dtype=torch.uint8)
-                print(error_tensor.shape)
-                return error_tensor
-            else:
-                print(f"Request failed with status code {response.status_code}")
-                print(f"Error message: {response.text}")
-                error_tensor = torch.full(size=(1, 1080, 1920, 4), fill_value=255, dtype=torch.uint8)
-                print(error_tensor.shape)
-                return error_tensor
+            error_message = response.json()["details_message"] if response.status_code == 400 else response.text
+            raise ValueError(
+                f"Request failed with status code {response.status_code}. Error message: {error_message}"
+            )
 
         rgb_output = response.json()["output_paths"]["rgb"]
-        print(rgb_output)
+        rgb_data = np.load(rgb_output)
+        rgb_tensor = torch.from_numpy(rgb_data)
 
-        data = np.load(rgb_output)
-        print(data.shape)
-        for col in data[0][0]:
-            print(col)
+        normals_output = response.json()["output_paths"]["normals"]
+        normals_data = np.load(normals_output)
+        normals_tensor = torch.from_numpy(normals_data)
 
-        rgb_tensor = torch.from_numpy(data)
+        depth_output = response.json()["output_paths"]["depth"]
+        depth_data = np.load(depth_output)
+        depth_tensor = torch.from_numpy(depth_data)
 
-        return (rgb_tensor, rgb_tensor, rgb_tensor, )
+        return (
+            rgb_tensor,
+            normals_tensor,
+            depth_tensor,
+        )
 
     @classmethod
     def IS_CHANGED(cls, num_frames_to_record, renderer):
