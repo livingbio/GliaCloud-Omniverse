@@ -46,7 +46,7 @@ class OmniViewportFrameNode:
     def IS_CHANGED(cls):
         return float("NaN")
 
-def _colorize_rgb(data: list):
+def _colorize_standard(data: list):
     start = round(perf_counter(), 2)
 
     rgb_data = data[0]
@@ -57,7 +57,7 @@ def _colorize_rgb(data: list):
     data[0] = rgb_data
 
     end = round(perf_counter(), 2)
-    print(f"RGB colorization took {end - start}, starting at {start} and ending at {end}")
+    print(f"Standard colorization took {end - start}, starting at {start} and ending at {end}")
 
 def _colorize_normals(data: list):
     start = round(perf_counter(), 2)
@@ -112,12 +112,8 @@ class OmniViewportRecordingNode:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE")
-    RETURN_NAMES = (
-        "rgb_out",
-        "normals_out",
-        "depth_out",
-    )
+    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE")
+    RETURN_NAMES = ("rgb_out", "normals_out", "depth_out", "inst_id_seg_out")
     FUNCTION = "get_viewport_recording"
     CATEGORY = "Omniverse"
 
@@ -128,7 +124,7 @@ class OmniViewportRecordingNode:
         url = "http://localhost:8111"
         path = "/viewport-capture/viewport-record"
 
-        renderer_shortname = "realtime" if (renderer == "RTX - Real-Time") else "pathtracing"
+        renderer_shortname = "realtime" if (renderer == "RTX - Real-Time") else "pathtraced"
 
         body = {"num_frames_to_record": num_frames_to_record, "renderer": renderer_shortname}
 
@@ -147,31 +143,38 @@ class OmniViewportRecordingNode:
         rgb_tensor = torch.zeros((num_frames_to_record, H, W, C))
         normals_tensor = torch.zeros((num_frames_to_record, H, W, C))
         depth_tensor = torch.zeros((num_frames_to_record, H, W, C))
+        inst_id_seg_tensor = torch.zeros((num_frames_to_record, H, W, C))
 
         for frame in range(num_frames_to_record):
             rgb_frame_path = response.json()["output_paths"]["rgb"] + str(frame) + ".npy"
             normals_frame_path = str(response.json()["output_paths"]["normals"]) + str(frame) + ".npy"
             depth_frame_path = str(response.json()["output_paths"]["depth"]) + str(frame) + ".npy"
+            inst_id_seg_frame_path = str(response.json()["output_paths"]["inst_id_seg"]) + str(frame) + ".npy"
 
             rgb_frame = [np.load(rgb_frame_path)]
             normals_frame = [np.load(normals_frame_path)]
             depth_frame = [np.load(depth_frame_path)]
+            inst_id_seg_frame = [np.load(inst_id_seg_frame_path)]
 
-            rgb_thread = Thread(target=_colorize_rgb, args=[rgb_frame])
+            rgb_thread = Thread(target=_colorize_standard, args=[rgb_frame])
             normals_thread = Thread(target=_colorize_normals, args=[normals_frame])
             depth_thread = Thread(target=_colorize_depth, args=[depth_frame])
+            inst_id_seg_thread = Thread(target=_colorize_standard, args=[inst_id_seg_frame])
 
             rgb_thread.start()
             normals_thread.start()
             depth_thread.start()
+            inst_id_seg_thread.start()
 
             rgb_thread.join()
             normals_thread.join()
             depth_thread.join()
+            inst_id_seg_thread.join()
 
             rgb_tensor[frame] = rgb_frame[0]
             normals_tensor[frame] = normals_frame[0]
             depth_tensor[frame] = depth_frame[0]
+            inst_id_seg_tensor[frame] = inst_id_seg_frame[0]
 
             pbar.update_absolute(frame, num_frames_to_record)
 
@@ -179,6 +182,7 @@ class OmniViewportRecordingNode:
             rgb_tensor,
             normals_tensor,
             depth_tensor,
+            inst_id_seg_tensor,
         )
 
     @classmethod
