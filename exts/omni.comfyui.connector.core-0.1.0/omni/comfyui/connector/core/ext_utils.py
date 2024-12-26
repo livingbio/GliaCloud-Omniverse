@@ -1,15 +1,13 @@
-import omni.kit.actions.core
 import omni.kit.app
+import omni.kit.actions.core
 import omni.usd
 import omni.kit.viewport.utility
-import omni.kit.renderer.capture
+import omni.kit.capture.viewport
 
 import os
 import shutil
 from typing import Optional, Tuple
 import carb
-
-import omni.kit.capture.viewport
 
 
 def get_extension_name() -> str:

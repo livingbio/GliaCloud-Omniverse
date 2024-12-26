@@ -13,21 +13,12 @@ icon = "icons/icon.svg"
 
 [dependencies]
 "omni.ui" = {}
-"omni.kit.graph.editor.core" = {}
-"omni.kit.window.quicksearch" = {optional=true}
-"omni.kit.window.filepicker" = {optional=true}
-"omni.kit.window.popup_dialog" = {optional=true}
-"omni.kit.graph.delegate.default" = {}
-"omni.kit.graph.delegate.modern" = {}
-"omni.kit.graph.delegate.neo" = {}
-"omni.kit.menu.edit" = {}
 "omni.kit.actions.core" = {}
 "omni.services.core" = {}
-"omni.services.transport.server.http" = {}
 "omni.usd" = {}
 "omni.kit.viewport.utility" = {}
 "omni.replicator.core" = {}
-"omni.pip.torch" = {}
+"omni.syntheticdata" = {}
 
 [[python.module]]
 name = "omni.comfyui.connector.core"

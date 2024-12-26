@@ -1,5 +1,5 @@
-import omni.ui as ui
 import omni.kit.app
+import omni.ui as ui
 
 import asyncio
 

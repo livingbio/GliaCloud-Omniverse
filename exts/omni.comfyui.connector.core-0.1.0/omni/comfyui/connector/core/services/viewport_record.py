@@ -1,12 +1,8 @@
 from omni.services.core import routers
-import omni.replicator.core as rep
-from omni.replicator.core.scripts.writers_default.tools import colorize_normals
-from omni.kit.viewport.utility import get_active_viewport
 
 import carb
 from fastapi import Response
 
-from ..ext_utils import get_extension_data_path, join_with_replace
 from ..use_replicator import run
 from ..models.viewport_models import ViewportRecordRequestModel, ViewportRecordResponseModel
 

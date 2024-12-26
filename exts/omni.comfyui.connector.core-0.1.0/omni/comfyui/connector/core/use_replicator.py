@@ -2,11 +2,12 @@ import omni.replicator.core as rep
 from omni.replicator.core.scripts.annotators import Annotator
 from omni.replicator.core.scripts.writers_default.tools import colorize_normals
 from omni.kit.viewport.utility import get_active_viewport
+import omni.syntheticdata as sd
 
 import carb
 import numpy as np
 from typing import Literal
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from .models.viewport_models import ViewportRecordRequestModel, ViewportRecordResponseModel
 from .ext_utils import get_extension_data_path, join_with_replace
@@ -34,29 +35,29 @@ def _colorize_depth(depth_data):
     return new_depth_data
 
 
-def _colorize_depth2(depth_data):
-    near = 0.01
-    far = 100
-    gamma = 1 / 2.2
-    new_depth_data = (depth_data - near) / (far - near)
-    new_depth_data = np.clip(new_depth_data, near, far)
-    new_depth_data = new_depth_data**gamma
-    new_depth_data = 1.0 - new_depth_data
+# def _colorize_depth2(depth_data):
+#     near = 0.01
+#     far = 100
+#     gamma = 1 / 2.2
+#     new_depth_data = (depth_data - near) / (far - near)
+#     new_depth_data = np.clip(new_depth_data, near, far)
+#     new_depth_data = new_depth_data**gamma
+#     new_depth_data = 1.0 - new_depth_data
 
-    new_depth_data = np.stack((new_depth_data, new_depth_data, new_depth_data), axis=2)
+#     new_depth_data = np.stack((new_depth_data, new_depth_data, new_depth_data), axis=2)
 
-    return new_depth_data
+#     return new_depth_data
 
 
-def _colorize_depth3(depth_data):
-    near = 0.01
-    far = 100
-    new_depth_data = np.clip(depth_data, near, far)
-    new_depth_data = (np.log(new_depth_data) - np.log(near)) / (np.log(far) - np.log(near))
-    new_depth_data = 1.0 - new_depth_data
-    depth_colormap = plt.cm.plasma(new_depth_data)
+# def _colorize_depth3(depth_data):
+#     near = 0.01
+#     far = 100
+#     new_depth_data = np.clip(depth_data, near, far)
+#     new_depth_data = (np.log(new_depth_data) - np.log(near)) / (np.log(far) - np.log(near))
+#     new_depth_data = 1.0 - new_depth_data
+#     depth_colormap = plt.cm.plasma(new_depth_data)
 
-    return depth_colormap[:, :, :3]
+#     return depth_colormap[:, :, :3]
 
 
 async def run(
@@ -64,6 +65,8 @@ async def run(
 ) -> ViewportRecordResponseModel:
 
     response_model = ViewportRecordResponseModel()
+
+    sd.SyntheticData.Get().set_instance_mapping_semantic_filter("prim:*")
 
     _viewport = get_active_viewport()
     if not _viewport or _viewport.frame_info.get("viewport_handle", None) is None:
@@ -85,7 +88,15 @@ async def run(
     normals_data_list = []
     depth_data_list = []
 
-    for _ in range(request.num_frames_to_record):
+    replicator_data_path = join_with_replace(_ext_data_path, "replicator")
+
+    rgb_identifier = "rgb_data/rgb_"
+    normals_identifier = "normals_data/normals_"
+    depth_identifier = "depth_data/depth_"
+
+    backend = rep.BackendDispatch({"paths": {"out_dir": replicator_data_path}})
+
+    for frame in range(request.num_frames_to_record):
         await rep.orchestrator.step_async()
 
         rgb_data: np.ndarray[tuple[int, int, Literal[4]], np.uint8] = rgb_annotator.get_data()
@@ -95,19 +106,25 @@ async def run(
 
         rgb_data_list.append(rgb_data)
 
+        backend.write_array(rgb_identifier + str(frame) + ".npy", rgb_data)
+
         normals_data: np.ndarray[tuple[int, int, Literal[4]], np.float32] = normals_annotator.get_data()
         normals_data = colorize_normals(normals_data)
         normals_data = normals_data[:, :, :3]
         normals_data = normals_data / 255.0
 
-        # normals_data_list.append(normals_data)
+        backend.write_array(normals_identifier + str(frame) + ".npy", normals_data)
+
+        normals_data_list.append(normals_data)
 
         depth_data: np.ndarray[tuple[int, int], np.float32] = depth_annotator.get_data()
         depth_data1 = _colorize_depth(depth_data)
-        depth_data2 = _colorize_depth3(depth_data)
+
+        backend.write_array(depth_identifier + str(frame) + ".npy", depth_data1)
 
         depth_data_list.append(depth_data1)
-        normals_data_list.append(depth_data2)
+
+        backend.wait_until_done()
 
     rep.orchestrator.stop()
 
