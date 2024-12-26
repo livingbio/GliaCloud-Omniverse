@@ -2,7 +2,6 @@ import omni.replicator.core as rep
 from omni.replicator.core.scripts.annotators import Annotator
 from omni.replicator.core.scripts.writers_default.tools import colorize_normals
 from omni.kit.viewport.utility import get_active_viewport
-import omni.syntheticdata as sd
 
 import carb
 import numpy as np
@@ -23,14 +22,16 @@ def _configure_annotator(name: str, render_products: str | list) -> Annotator:
     anno.attach(render_products)
     return anno
 
-def _colorize_depth(depth_data):
+def _colorize_depth(depth_data: np.ndarray[tuple[int, int], np.float32]):
     near = 0.01
     far = 100
     new_depth_data = np.clip(depth_data, near, far)
     new_depth_data = (np.log(new_depth_data) - np.log(near)) / (np.log(far) - np.log(near))
     new_depth_data = 1.0 - new_depth_data
 
-    new_depth_data = np.stack((new_depth_data, new_depth_data, new_depth_data), axis=2)
+    alpha_data = np.full((new_depth_data.shape[0], new_depth_data.shape[1]), 1)
+
+    new_depth_data = np.stack((new_depth_data, new_depth_data, new_depth_data, alpha_data), axis=2)
 
     return new_depth_data
 
@@ -66,8 +67,6 @@ async def run(
 
     response_model = ViewportRecordResponseModel()
 
-    sd.SyntheticData.Get().set_instance_mapping_semantic_filter("prim:*")
-
     _viewport = get_active_viewport()
     if not _viewport or _viewport.frame_info.get("viewport_handle", None) is None:
         response_model.details_message = "Viewport is not properly loaded for rendering"
@@ -100,47 +99,42 @@ async def run(
         await rep.orchestrator.step_async()
 
         rgb_data: np.ndarray[tuple[int, int, Literal[4]], np.uint8] = rgb_annotator.get_data()
-
-        rgb_data = rgb_data[:, :, :3]
-        rgb_data = rgb_data / 255.0
-
-        rgb_data_list.append(rgb_data)
+        # rgb_data = rgb_data / 255.0
 
         backend.write_array(rgb_identifier + str(frame) + ".npy", rgb_data)
 
         normals_data: np.ndarray[tuple[int, int, Literal[4]], np.float32] = normals_annotator.get_data()
-        normals_data = colorize_normals(normals_data)
-        normals_data = normals_data[:, :, :3]
-        normals_data = normals_data / 255.0
+        # normals_data = colorize_normals(normals_data)
+        # normals_data = normals_data / 255.0
 
         backend.write_array(normals_identifier + str(frame) + ".npy", normals_data)
 
-        normals_data_list.append(normals_data)
-
         depth_data: np.ndarray[tuple[int, int], np.float32] = depth_annotator.get_data()
-        depth_data1 = _colorize_depth(depth_data)
+        # depth_data1 = _colorize_depth(depth_data)
 
-        backend.write_array(depth_identifier + str(frame) + ".npy", depth_data1)
-
-        depth_data_list.append(depth_data1)
+        backend.write_array(depth_identifier + str(frame) + ".npy", depth_data)
 
         backend.wait_until_done()
 
     rep.orchestrator.stop()
 
-    rgb_data_stack = np.stack(rgb_data_list, axis=0)
-    rgb_data_path = join_with_replace(_ext_data_path, "replicator/rgb.npy")
-    np.save(rgb_data_path, arr=rgb_data_stack, allow_pickle=False)
+    # rgb_data_stack = np.stack(rgb_data_list, axis=0)
+    # rgb_data_path = join_with_replace(_ext_data_path, "replicator/rgb.npy")
+    # np.save(rgb_data_path, arr=rgb_data_stack, allow_pickle=False)
 
-    normals_data_stack = np.stack(normals_data_list, axis=0)
-    normals_data_path = join_with_replace(_ext_data_path, "replicator/normals.npy")
-    np.save(normals_data_path, arr=normals_data_stack, allow_pickle=False)
+    # normals_data_stack = np.stack(normals_data_list, axis=0)
+    # normals_data_path = join_with_replace(_ext_data_path, "replicator/normals.npy")
+    # np.save(normals_data_path, arr=normals_data_stack, allow_pickle=False)
 
-    depth_data_stack = np.stack(depth_data_list, axis=0)
-    depth_data_path = join_with_replace(_ext_data_path, "replicator/depth.npy")
-    np.save(depth_data_path, arr=depth_data_stack, allow_pickle=False)
+    # depth_data_stack = np.stack(depth_data_list, axis=0)
+    # depth_data_path = join_with_replace(_ext_data_path, "replicator/depth.npy")
+    # np.save(depth_data_path, arr=depth_data_stack, allow_pickle=False)
 
-    response_model.output_paths = {"rgb": rgb_data_path, "normals": normals_data_path, "depth": depth_data_path}
+    response_model.output_paths = {
+        "rgb": join_with_replace(replicator_data_path, rgb_identifier),
+        "normals": join_with_replace(replicator_data_path, normals_identifier),
+        "depth": join_with_replace(replicator_data_path, depth_identifier),
+    }
     response_model.success = True
     response_model.details_message = "Contains rgb, normals, and depth data."
 

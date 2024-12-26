@@ -2,6 +2,10 @@ import requests
 import numpy as np
 import torch  # type: ignore #
 from PIL import Image, ImageOps
+from comfy.utils import ProgressBar
+from typing import Literal
+from threading import Thread
+from time import perf_counter
 
 
 class OmniViewportFrameNode:
@@ -41,6 +45,56 @@ class OmniViewportFrameNode:
     @classmethod
     def IS_CHANGED(cls):
         return float("NaN")
+
+def _colorize_rgb(data: list):
+    start = round(perf_counter(), 2)
+
+    rgb_data = data[0]
+
+    rgb_data = rgb_data / 255.0
+    rgb_data = torch.from_numpy(rgb_data)
+
+    data[0] = rgb_data
+
+    end = round(perf_counter(), 2)
+    print(f"RGB colorization took {end - start}, starting at {start} and ending at {end}")
+
+def _colorize_normals(data: list):
+    start = round(perf_counter(), 2)
+
+    normals_data = data[0]
+
+    normals_data = ((normals_data * 0.5 + 0.5) * 255).astype(np.uint8)
+    normals_data = normals_data / 255.0
+    normals_data = torch.from_numpy(normals_data)
+
+    data[0] = normals_data
+
+    end = round(perf_counter(), 2)
+    print(f"Normals colorization took {end - start}, starting at {start} and ending at {end}")
+
+def _colorize_depth(data: list):
+    start = round(perf_counter(), 2)
+
+    depth_data = data[0]
+
+    near = 0.01
+    far = 100
+    depth_data = np.clip(depth_data, near, far)
+    depth_data = (np.log(depth_data) - np.log(near)) / (np.log(far) - np.log(near))
+    depth_data = 1.0 - depth_data
+
+    alpha_data = np.full((depth_data.shape[0], depth_data.shape[1]), 1)
+
+    depth_data = np.stack((depth_data, depth_data, depth_data, alpha_data), axis=2)
+    depth_data = torch.from_numpy(depth_data)
+
+    data[0] = depth_data
+
+    end = round(perf_counter(), 2)
+
+    print(f'Depth colorization took {end - start}, starting at {start} and ending at {end}')
+
 
 class OmniViewportRecordingNode:
     @classmethod
@@ -86,17 +140,40 @@ class OmniViewportRecordingNode:
                 f"Request failed with status code {response.status_code}. Error message: {error_message}"
             )
 
-        rgb_output = response.json()["output_paths"]["rgb"]
-        rgb_data = np.load(rgb_output)
-        rgb_tensor = torch.from_numpy(rgb_data)
+        H, W, C = 1080, 1920, 4
 
-        normals_output = response.json()["output_paths"]["normals"]
-        normals_data = np.load(normals_output)
-        normals_tensor = torch.from_numpy(normals_data)
+        pbar = ProgressBar(num_frames_to_record)
 
-        depth_output = response.json()["output_paths"]["depth"]
-        depth_data = np.load(depth_output)
-        depth_tensor = torch.from_numpy(depth_data)
+        rgb_tensor = torch.zeros((num_frames_to_record, H, W, C))
+        normals_tensor = torch.zeros((num_frames_to_record, H, W, C))
+        depth_tensor = torch.zeros((num_frames_to_record, H, W, C))
+
+        for frame in range(num_frames_to_record):
+            rgb_frame_path = response.json()["output_paths"]["rgb"] + str(frame) + ".npy"
+            normals_frame_path = str(response.json()["output_paths"]["normals"]) + str(frame) + ".npy"
+            depth_frame_path = str(response.json()["output_paths"]["depth"]) + str(frame) + ".npy"
+
+            rgb_frame = [np.load(rgb_frame_path)]
+            normals_frame = [np.load(normals_frame_path)]
+            depth_frame = [np.load(depth_frame_path)]
+
+            rgb_thread = Thread(target=_colorize_rgb, args=[rgb_frame])
+            normals_thread = Thread(target=_colorize_normals, args=[normals_frame])
+            depth_thread = Thread(target=_colorize_depth, args=[depth_frame])
+
+            rgb_thread.start()
+            normals_thread.start()
+            depth_thread.start()
+
+            rgb_thread.join()
+            normals_thread.join()
+            depth_thread.join()
+
+            rgb_tensor[frame] = rgb_frame[0]
+            normals_tensor[frame] = normals_frame[0]
+            depth_tensor[frame] = depth_frame[0]
+
+            pbar.update_absolute(frame, num_frames_to_record)
 
         return (
             rgb_tensor,
