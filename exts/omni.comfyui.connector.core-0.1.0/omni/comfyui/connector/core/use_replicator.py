@@ -2,13 +2,54 @@ import omni.replicator.core as rep
 from omni.replicator.core.scripts.annotators import Annotator
 from omni.replicator.core.scripts.writers_default.tools import colorize_segmentation
 from omni.kit.viewport.utility import get_active_viewport
+from semantics.schema.editor import get_prim_auto_label, add_prim_semantics, LabelWriteType
+import omni.usd
+import omni.kit.actions.core
 
 import numpy as np
 from typing import Literal
 import carb
+from functools import partial
 
 from .models.viewport_models import ViewportRecordRequestModel, ViewportRecordResponseModel
 from .ext_utils import get_extension_data_path, join_with_replace
+
+def _add_auto_semantics():
+    _output_str = ""
+
+    _prim_types_filter = "Mesh, Material, Skeleton"
+    _prefixes_to_remove = "SM, MI, Mat"
+    _suffixes_to_remove = "Mat, 6M"
+
+    prim_types = [prim_type for prim_type in _prim_types_filter.replace(" ", "").split(",") if prim_type]
+    prefixes = [prefix for prefix in _prefixes_to_remove.replace(" ", "").split(",") if prefix]
+    suffixes = [suffix for suffix in _suffixes_to_remove.replace(" ", "").split(",") if suffix]
+
+    get_prim_data = partial(
+        get_prim_auto_label,
+        prim_types=prim_types,
+        remove_numerical_ending=True,
+        prefixes=prefixes,
+        suffixes=suffixes,
+        apply_cumulatively=True,
+        remove_separators=True,
+    )
+    add_prim_data = partial(
+        add_prim_semantics, type="class", write_type=LabelWriteType.NEW, preview=False
+    )
+
+    context = omni.usd.get_context()
+    for prim in context.get_stage().Traverse():
+        label = get_prim_data(prim)
+        if label:
+            _output_str += add_prim_data(prim, data=label)
+
+    carb.log_warn(_output_str)
+
+    # action_registry = omni.kit.actions.core.get_action_registry()
+
+    # save_action = action_registry.get_action("omni.kit.window.file", "save")
+    # save_action.execute()
 
 
 def _set_renderer(renderer: str) -> None:
@@ -27,6 +68,8 @@ def _configure_annotator(name: str, render_products: str | list) -> Annotator:
 async def run(request: ViewportRecordRequestModel = ViewportRecordRequestModel()) -> ViewportRecordResponseModel:
 
     response_model = ViewportRecordResponseModel()
+
+    _add_auto_semantics()
 
     _viewport = get_active_viewport()
     if not _viewport or _viewport.frame_info.get("viewport_handle", None) is None:

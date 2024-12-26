@@ -529,6 +529,7 @@
         "${workspaceFolder}/app/kit/extscore/omni.kit.registry.nucleus",
         "${workspaceFolder}/data/omni.replicator.core-1.10.10+105.1.wx64.r.cp310",
         "${workspaceFolder}/data/omni.syntheticdata-0.4.10+ece658d9.wx64.r.cp310",
+        "${workspaceFolder}/data/semantics.schema.editor-0.3.4",
         "C:/Users/gliacloud/AppData/Local/ov/data/Kit/USD.Composer/2023.2/pip3-envs/default"
     ],
 
