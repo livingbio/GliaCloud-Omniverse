@@ -11,8 +11,6 @@ _*/
 
 /app
 
-**/data/**
-
-exts/omni.comfyui.connector.core-0.1.0/pyproject.toml
+exts/omni.comfyui.connector.core-0.1.0/data/replicator/**
 
 /data
