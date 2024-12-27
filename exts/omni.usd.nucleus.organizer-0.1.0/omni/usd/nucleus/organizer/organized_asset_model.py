@@ -42,7 +42,7 @@ class OrganizedAssetModel:
         options_manager._merge_all_meshes_checkbox = OrganizedAssetModel.set_checkbox_value(False)
         options_manager._rotation_checkbox = OrganizedAssetModel.set_checkbox_value(True)
 
-    @classmethod
+    @staticmethod
     def change_window_state(cls, new_state: str = ""):
         _settings = carb.settings.get_settings()
         _settings.set("exts/omni.usd.nucleus.organizer/window_state", new_state)
@@ -66,7 +66,9 @@ class OrganizedAssetModel:
 
         asset_importer_ext._convert_file([self._input_path])
 
-    def apply_standardization(self):
+        OrganizedAssetModel.change_window_state("validate")
+
+    def apply_validation(self):
 
         carb.log_warn(self._output_path)
 

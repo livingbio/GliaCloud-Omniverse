@@ -6,18 +6,21 @@ import omni.kit.tool.asset_importer as ai
 from typing import List, Union, Dict
 import os
 
+
 class CustomBuiltInImporterDelegate(ai.BuiltInImporterDelegate):
 
-    def __init__(self, orig_delegate: ai.BuiltInImporterDelegate) -> None:   
-        super().__init__(orig_delegate._options_builder._usd_context, 
-                         orig_delegate._builtin_importer,
-                         orig_delegate.__filter_regexes__,
-                         orig_delegate.__fiter_descriptions__)
-        
+    def __init__(self, orig_delegate: ai.BuiltInImporterDelegate) -> None:
+        super().__init__(
+            orig_delegate._options_builder._usd_context,
+            orig_delegate._builtin_importer,
+            orig_delegate.__filter_regexes__,
+            orig_delegate.__fiter_descriptions__,
+        )
+
         self._name = "GliaCloud Customized Delegate for Built-in Importer"
 
     async def convert_assets(self, paths: List[str], customized=False, **kargs) -> Dict[str, Union[str, None]]:
-        export_folder = kargs["export_folder"] if  'export_folder' in kargs else ""
+        export_folder = kargs["export_folder"] if "export_folder" in kargs else ""
 
         absolute_paths = []
         relative_paths = []
@@ -26,7 +29,7 @@ class CustomBuiltInImporterDelegate(ai.BuiltInImporterDelegate):
                 absolute_paths.append(file_path)
                 filename = os.path.basename(file_path)
                 relative_paths.append(filename)
-                
+
         converter_context = AssetConverterContext()
         converter_context.ignore_light = True
         converter_context.use_meter_as_world_unit = True
@@ -37,4 +40,3 @@ class CustomBuiltInImporterDelegate(ai.BuiltInImporterDelegate):
         )
 
         return converted_assets
-

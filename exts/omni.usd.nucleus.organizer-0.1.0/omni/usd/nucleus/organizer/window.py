@@ -114,7 +114,8 @@ class USDNucleusOrganizerWindow(ui.Window):
             with ui.VStack():
                 ui.Button("CONVERT", clicked_fn=self.asset_model.apply_conversion, height=ui.Percent(0.25))
 
+    # TODO: fix frame change error
     def _build_validate_frame(self):
         with ui.ScrollingFrame():
             with ui.VStack():
-                ui.Button("OPTIMIZE", clicked_fn=self.asset_model.apply_standardization, height=ui.Percent(0.25))
+                ui.Button("VALIDATE", clicked_fn=self.asset_model.apply_validation, height=ui.Percent(0.25))
