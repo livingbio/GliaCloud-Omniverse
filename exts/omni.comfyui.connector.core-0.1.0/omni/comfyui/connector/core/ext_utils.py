@@ -164,41 +164,5 @@ async def capture_viewport(response) -> Tuple[bool, Optional[str], Optional[str]
 
     return (success, output_url_path, details_message)
 
-def test():
-    capture_extension = omni.kit.capture.viewport.CaptureExtension.get_instance()
-    capture_extension.show_default_progress_window = False
-    capture_extension.forward_one_frame_fn = None
-    capture_extension.options.output_folder = get_local_resource_directory()
-    capture_extension.options.file_name = "sequence"
-    capture_extension.options.file_type = ".mp4"
-    capture_extension.options.end_frame = 80
-
-    capture_extension.options.res_width = 1920
-    capture_extension.options.res_height = 1080
-
-    options_dict = capture_extension.options.to_dict()
-    options_str = ''
-    for k, v in options_dict.items():
-        options_str += f'{k}: {v}\n'
-
-    carb.log_warn(options_str)
-
-    # capture_extension.start()
-
-    import requests
-
-    url = "https://api.comfy.org/publishers/mialana/nodes"
-
-    headers = {"Authorization": "Bearer 93531bdf-e314-4a0e-b6d6-8ea0f3234723"}
-
-    response = requests.request("GET", url, headers=headers)
-
-    carb.log_warn(response.text)
-
-
-def cancel_capture():
-    capture_extension = omni.kit.capture.viewport.CaptureExtension.get_instance()
-    capture_extension.progress._capture_status = omni.kit.capture.viewport.CaptureStatus.TO_START_ENCODING
-
 def join_with_replace(path1: str, path2: str) -> str:
     return os.path.join(path1, path2).replace(os.sep, "/")

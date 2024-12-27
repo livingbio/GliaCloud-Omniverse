@@ -3,13 +3,11 @@ import numpy as np
 import torch  # type: ignore #
 from PIL import Image, ImageOps
 from comfy.utils import ProgressBar
-from typing import Literal
 from threading import Thread
 from time import perf_counter
 
 
 class OmniViewportFrameNode:
-
     @classmethod
     def INPUT_TYPES(cls):
         return {"required": {}}
@@ -26,11 +24,11 @@ class OmniViewportFrameNode:
         url = "http://localhost:8111"
         path = "/viewport-capture/simple-capture"
 
-        response = requests.post(f"{url}{path}", headers=headers)
+        response = requests.get(f"{url}{path}", headers=headers)
 
         if response.status_code != 200:
             print(f"Request failed with status code {response.status_code}. Error: {response.text}")
-            return Image.new("RGB", (1920, 1080))
+            return (Image.new("RGB", (1920, 1080)), )
 
         response_image_path = response.json()["output_url_path"]
         image_url = f"{url}{response_image_path}"
@@ -46,6 +44,7 @@ class OmniViewportFrameNode:
     def IS_CHANGED(cls):
         return float("NaN")
 
+
 def _colorize_standard(data: list):
     start = round(perf_counter(), 2)
 
@@ -57,7 +56,7 @@ def _colorize_standard(data: list):
     data[0] = rgb_data
 
     end = round(perf_counter(), 2)
-    print(f"Standard colorization took {round(end - start, 2)}, starting at {start} and ending at {end}")
+
 
 def _colorize_normals(data: list):
     start = round(perf_counter(), 2)
@@ -71,7 +70,7 @@ def _colorize_normals(data: list):
     data[0] = normals_data
 
     end = round(perf_counter(), 2)
-    print(f"Normals colorization took {round(end - start, 2)}, starting at {start} and ending at {end}")
+
 
 def _colorize_depth(data: list):
     start = round(perf_counter(), 2)
@@ -92,8 +91,6 @@ def _colorize_depth(data: list):
     data[0] = depth_data
 
     end = round(perf_counter(), 2)
-
-    print(f'Depth colorization took {round(end - start, 2)}, starting at {start} and ending at {end}')
 
 
 class OmniViewportRecordingNode:
@@ -124,17 +121,14 @@ class OmniViewportRecordingNode:
         url = "http://localhost:8111"
         path = "/viewport-capture/viewport-record"
 
-        renderer_shortname = "realtime" if (renderer == "RTX - Real-Time") else "pathtraced"
-
-        body = {"num_frames_to_record": num_frames_to_record, "renderer": renderer_shortname}
+        _renderer_shortname = "realtime" if (renderer == "RTX - Real-Time") else "pathtraced"
+        body = {"num_frames_to_record": num_frames_to_record, "renderer": _renderer_shortname}
 
         response = requests.get(f"{url}{path}", headers=headers, json=body)
 
         if response.status_code != 200:
             error_message = response.json()["details_message"] if response.status_code == 400 else response.text
-            raise ValueError(
-                f"Request failed with status code {response.status_code}. Error message: {error_message}"
-            )
+            raise ValueError(f"Request failed with status code {response.status_code}. Error message: {error_message}")
 
         H, W, C = 1080, 1920, 4
 
@@ -198,127 +192,11 @@ class OmniViewportRecordingNode:
         return float("NaN")
 
 
-class OmniViewportDepthNode:
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "start_frame": (
-                    "INT",
-                    {
-                        "default": 1,
-                        "min": 1,
-                    },
-                ),
-                "end_frame": (
-                    "INT",
-                    {
-                        "default": 40,
-                        "min": 20,
-                    },
-                ),
-            }
-        }
-
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image_out",)
-    FUNCTION = "get_current_viewport"
-    CATEGORY = "Omniverse"
-
-    def get_current_viewport(self):
-
-        headers = {"Content-Type": "application/json"}
-
-        url = "http://localhost:8111"
-        path = "/viewport-capture/simple-capture"
-
-        response = requests.post(f"{url}{path}", headers=headers)
-
-        if response.status_code != 200:
-            print(f"Request failed with status code {response.status_code}. Error: {response.text}")
-            return Image.new("RGB", (1920, 1080))
-
-        response_image_path = response.json()["output_url_path"]
-        image_url = f"{url}{response_image_path}"
-
-        image = Image.open(requests.get(image_url, stream=True).raw)
-        image = ImageOps.exif_transpose(image)
-        image = image.convert("RGB")
-        image = np.array(image).astype(np.float32) / 255.0
-        image = torch.from_numpy(image)[None,]
-        return (image,)
-
-    @classmethod
-    def IS_CHANGED(cls):
-        return float("NaN")
-
-
-class OmniViewportSemanticSegmentationNode:
-    @classmethod
-    def INPUT_TYPES(cls):
-
-        return {
-            "required": {
-                "start_frame": (
-                    "INT",
-                    {
-                        "default": 1,
-                        "min": 1,
-                    },
-                ),
-                "end_frame": (
-                    "INT",
-                    {
-                        "default": 40,
-                        "min": 20,
-                    },
-                ),
-            }
-        }
-
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image_out",)
-    FUNCTION = "get_current_viewport"
-    CATEGORY = "Omniverse"
-
-    def get_current_viewport(self):
-
-        headers = {"Content-Type": "application/json"}
-
-        url = "http://localhost:8111"
-        path = "/viewport-capture/simple-capture"
-
-        response = requests.post(f"{url}{path}", headers=headers)
-
-        if response.status_code != 200:
-            print(f"Request failed with status code {response.status_code}. Error: {response.text}")
-            return Image.new("RGB", (1920, 1080))
-
-        response_image_path = response.json()["output_url_path"]
-        image_url = f"{url}{response_image_path}"
-
-        image = Image.open(requests.get(image_url, stream=True).raw)
-        image = ImageOps.exif_transpose(image)
-        image = image.convert("RGB")
-        image = np.array(image).astype(np.float32) / 255.0
-        image = torch.from_numpy(image)[None,]
-        return (image,)
-
-    @classmethod
-    def IS_CHANGED(cls):
-        return float("NaN")
-
-
 NODE_CLASS_MAPPINGS = {
     "OmniViewportFrameNode": OmniViewportFrameNode,
     "OmniViewportRecordingNode": OmniViewportRecordingNode,
-    "OmniViewportDepthNode": OmniViewportDepthNode,
-    "OmniViewportSemanticSegmentationNode": OmniViewportSemanticSegmentationNode,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "OmniViewportFrameNode": "Screen Capture Omniverse Viewport",
     "OmniViewportRecordingNode": "Screen Record Omniverse Viewport",
-    "OmniViewportDepthNode": "Retrieve Omniverse Depth Mask",
-    "OmniViewportSemanticSegmentationNode": "Retrieve Omniverse Semantic Segmentation Mask",
 }

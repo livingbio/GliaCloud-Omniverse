@@ -3,16 +3,14 @@ import omni.ui as ui
 import omni.kit.ui
 from omni.services.core import main
 
-import asyncio
-from functools import partial
 import carb
 import os
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from .window import ComfyUIWindow
 from .services.viewport_capture import router as capture_router
 from .services.viewport_record import router as record_router
+from .ext_utils import join_with_replace
 
 # For convenience, let's also reuse the utility methods we already created to handle and format the storage location of
 # the captured images so they can be accessed by clients using the server, once API responses are issued from our
@@ -29,15 +27,17 @@ class ComfyUIConnectorExtension(omni.ext.IExt):
     MENU_PATH = f"Window/GliaCloud Custom/{WINDOW_NAME}"
 
     COMFY_NODES_FILE_PATH = str(Path(__file__).parent.joinpath('omni_nodes.py'))
-    COMFY_INSTALLATION_PATH = "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/ComfyUI"
+    COMFY_WINDOWS_PATH = "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/ComfyUI"
+    COMFY_PYTHON_WINDOWS_PATH = "C:/Users/gliacloud/Documents/ComfyUI_windows_portable/python_embeded/python.exe"
 
     def on_startup(self, ext_id):
         carb.log_warn("Extension started")
         global _global_instance
         _global_instance = self
 
-        self._window = None
-        self._menu = None
+        # TODO: Add UI field & button to optionally start ComfyUI web server from within Omniverse.
+        self.comfy_path = ComfyUIConnectorExtension.COMFY_WINDOWS_PATH
+        self.comfy_python_path = ComfyUIConnectorExtension.COMFY_PYTHON_WINDOWS_PATH
 
         # store extension id in Carbonite
         _settings = carb.settings.get_settings()
@@ -69,34 +69,16 @@ class ComfyUIConnectorExtension(omni.ext.IExt):
             path=ext_utils.get_full_resource_path(), app=StaticFiles(directory=_local_resource_directory, html=True)
         )
 
-        # Registers the callback to create our window in omni.ui. Useful for if we want to use QuickLayout.
-        ui.Workspace.set_show_window_fn(ComfyUIConnectorExtension.WINDOW_NAME, partial(self.show_window, None))
-
-        # Adds our extension window to the application menu under MENU_PATH
-        _editor_menu = omni.kit.ui.get_editor_menu()
-        if _editor_menu:
-            self._menu = _editor_menu.add_item(
-                ComfyUIConnectorExtension.MENU_PATH, on_click=self.show_window, toggle=True, value=True
-            )
-
-        self.show_window(None, True)
-
-        self._startup_comfy(self.COMFY_INSTALLATION_PATH)
+        self._link_comfy()
 
     def on_shutdown(self):
         global _global_instance
         _global_instance = None
 
-        self._shutdown_comfy(self.COMFY_INSTALLATION_PATH)
-
-        if self._menu:
-            self._menu = None
-
-        if self._window:
-            self._window.destroy()
-            self._window = None
+        self._unlink_comfy()
 
         _path = ext_utils.get_setting_service_path()
+
         # When disabling the extension or shutting down the instance of the Omniverse application, let's make sure we
         # also deregister our Service's `router` in order to avoid our API being erroneously advertised as present as
         # part of the OpenAPI specification despite our handler function no longer being available:
@@ -112,51 +94,23 @@ class ComfyUIConnectorExtension(omni.ext.IExt):
 
         main.deregister_mount(path=ext_utils.get_full_resource_path())
 
-    def _startup_comfy(self, comfy_path):
-        carb.log_warn("Starting Comfy")
-        _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
+        carb.log_warn("Extension shut down.")
+
+    def _link_comfy(self):
+        carb.log_info("Linking custom Omniverse nodes to ComfyUI")
+        _comfy_custom_node_path = join_with_replace(self.comfy_path, "custom_nodes/omni_nodes.py")
 
         if os.path.isfile(_comfy_custom_node_path):
             os.unlink(_comfy_custom_node_path)
 
-        os.symlink(self.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
+        os.symlink(ComfyUIConnectorExtension.COMFY_NODES_FILE_PATH, _comfy_custom_node_path)
 
-    def _shutdown_comfy(self, comfy_path):
-        _comfy_custom_node_path = os.path.join(comfy_path, "custom_nodes/omni_nodes.py").replace(os.sep, "/")
+    def _unlink_comfy(self):
+        _comfy_custom_node_path = join_with_replace(self.comfy_path, "custom_nodes/omni_nodes.py")
 
         if os.path.isfile(_comfy_custom_node_path):
             os.unlink(_comfy_custom_node_path)
-        carb.log_warn("Shut down Comfy")
-
-    def _on_menu_click(self, menu, toggled):
-        self.show_window(menu, toggled)
-
-    async def _destroy_window_async(self, visible):
-        # wait one frame, this is due to the one frame defer in Window::_moveToMainOSWindow()
-        await omni.kit.app.get_app().next_update_async()
-
-        editor_menu = omni.kit.ui.get_editor_menu()
-        if editor_menu:
-            editor_menu.set_value(ComfyUIConnectorExtension.MENU_PATH, visible)
-
-        if self._window:
-            self._window.destroy()
-            self._window = None
-
-    def show_window(self, _menu_path, show):
-        if show:
-            if self._window is None:
-                self._window = ComfyUIWindow(ComfyUIConnectorExtension.WINDOW_NAME)
-                self._window.set_visibility_changed_fn(self._visiblity_changed_fn)
-        elif self._window:
-            self._window.visible = False
-
-    def _visiblity_changed_fn(self, visible):
-        # Called when the user pressed "X"
-        # Set the checkmark in the menu that shows whether this window is visible or not
-        if not visible:
-            # Destroy the window, since we are creating new window in show_window
-            asyncio.ensure_future(self._destroy_window_async(visible))
+        carb.log_info("Unlinked ComfyUI")
 
     @staticmethod
     def get_instance():

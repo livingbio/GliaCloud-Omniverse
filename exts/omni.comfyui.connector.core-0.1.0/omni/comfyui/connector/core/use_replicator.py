@@ -47,11 +47,6 @@ async def _add_auto_semantics():
 
     carb.log_warn(_output_str)
 
-    carb.log_warn(context.save_stage_async())
-
-    return context.save_stage()
-
-
 def _set_renderer(renderer: str) -> None:
     if renderer == "realtime":
         rep.settings.set_render_rtx_realtime(antialiasing="DLAA")
