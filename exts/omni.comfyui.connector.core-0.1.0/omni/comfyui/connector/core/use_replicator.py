@@ -4,6 +4,7 @@ from omni.replicator.core.scripts.writers_default.tools import colorize_segmenta
 from omni.kit.viewport.utility import get_active_viewport
 from semantics.schema.editor import get_prim_auto_label, add_prim_semantics, LabelWriteType
 import omni.usd
+from omni.usd import UsdContext
 import omni.kit.actions.core
 
 import numpy as np
@@ -14,7 +15,7 @@ from functools import partial
 from .models.viewport_models import ViewportRecordRequestModel, ViewportRecordResponseModel
 from .ext_utils import get_extension_data_path, join_with_replace
 
-def _add_auto_semantics():
+async def _add_auto_semantics():
     _output_str = ""
 
     _prim_types_filter = "Mesh, Material, Skeleton"
@@ -38,7 +39,7 @@ def _add_auto_semantics():
         add_prim_semantics, type="class", write_type=LabelWriteType.NEW, preview=False
     )
 
-    context = omni.usd.get_context()
+    context: UsdContext = omni.usd.get_context()
     for prim in context.get_stage().Traverse():
         label = get_prim_data(prim)
         if label:
@@ -46,10 +47,9 @@ def _add_auto_semantics():
 
     carb.log_warn(_output_str)
 
-    # action_registry = omni.kit.actions.core.get_action_registry()
+    carb.log_warn(context.save_stage_async())
 
-    # save_action = action_registry.get_action("omni.kit.window.file", "save")
-    # save_action.execute()
+    return context.save_stage()
 
 
 def _set_renderer(renderer: str) -> None:
@@ -69,11 +69,14 @@ async def run(request: ViewportRecordRequestModel = ViewportRecordRequestModel()
 
     response_model = ViewportRecordResponseModel()
 
-    _add_auto_semantics()
-
     _viewport = get_active_viewport()
     if not _viewport or _viewport.frame_info.get("viewport_handle", None) is None:
         response_model.details_message = "Viewport is not properly loaded for rendering"
+        return response_model
+
+    save_result = await _add_auto_semantics()
+    if not save_result:
+        response_model.details_message = "Stage failed to save after adding semantics."
         return response_model
 
     active_camera_path = _viewport.camera_path
@@ -87,6 +90,7 @@ async def run(request: ViewportRecordRequestModel = ViewportRecordRequestModel()
     normals_annotator = _configure_annotator("normals", render_products)
     depth_annotator = _configure_annotator("distance_to_camera", render_products)
     inst_id_seg_annotator = _configure_annotator("instance_id_segmentation_fast", render_products)
+    semantic_seg_annotator = _configure_annotator("semantic_segmentation", render_products)
 
     replicator_data_path = join_with_replace(_ext_data_path, "replicator")
 
@@ -94,6 +98,7 @@ async def run(request: ViewportRecordRequestModel = ViewportRecordRequestModel()
     normals_identifier = "normals_data/normals_"
     depth_identifier = "depth_data/depth_"
     inst_id_seg_identifier = "inst_id_seg_data/inst_id_seg_"
+    semantic_seg_identifier = "semantic_seg_data/semantic_seg_"
 
     backend = rep.BackendDispatch({"paths": {"out_dir": replicator_data_path}})
 
@@ -116,6 +121,14 @@ async def run(request: ViewportRecordRequestModel = ViewportRecordRequestModel()
         )
 
         backend.write_array(inst_id_seg_identifier + str(frame) + ".npy", inst_id_seg_data)
+
+        semantic_seg_dict: np.ndarray[tuple[int, int], np.uint8] = semantic_seg_annotator.get_data()
+        semantic_seg_data, _palette, _mapping = colorize_segmentation(
+            data=semantic_seg_dict["data"], labels=semantic_seg_dict["info"]["idToLabels"]
+        )
+
+        backend.write_array(semantic_seg_identifier + str(frame) + ".npy", semantic_seg_data)
+
         backend.wait_until_done()
 
     rep.orchestrator.stop()
@@ -125,9 +138,10 @@ async def run(request: ViewportRecordRequestModel = ViewportRecordRequestModel()
         "normals": join_with_replace(replicator_data_path, normals_identifier),
         "depth": join_with_replace(replicator_data_path, depth_identifier),
         "inst_id_seg": join_with_replace(replicator_data_path, inst_id_seg_identifier),
+        "semantic_seg": join_with_replace(replicator_data_path, semantic_seg_identifier),
     }
 
     response_model.success = True
-    response_model.details_message = "Contains rgb, normals, depth, and instance-id-segmentation data."
+    response_model.details_message = "Contains rgb, normals, depth, instance-id-segmented, & semantic-segmented data."
 
     return response_model
