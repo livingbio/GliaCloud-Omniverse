@@ -46,6 +46,7 @@ async def _add_auto_semantics():
             _output_str += add_prim_data(prim, data=label)
 
     carb.log_warn(_output_str)
+    return True
 
 def _set_renderer(renderer: str) -> None:
     if renderer == "realtime":
