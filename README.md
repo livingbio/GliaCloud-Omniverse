@@ -18,7 +18,7 @@ Exported them to ComfyUI, enabling enhanced image processing and generation work
 
 # Using the extension
 ----------------------
-![extension demo](demo/extension_demo.mp4)
+![extension demo](demo/extension_demo.gif)
 
 
 # To Do
