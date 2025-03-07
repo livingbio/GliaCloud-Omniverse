@@ -1,8 +1,10 @@
 # all folders starting with _ are local
 _*/
 
+*.lnk
+
 .DS_Store
-**/.vscode/ipch
+**/.vscode/i
 
 # byte-compiled python files
 *.py[cod]
