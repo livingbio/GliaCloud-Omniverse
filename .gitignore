@@ -1,6 +1,8 @@
 # all folders starting with _ are local
 _*/
 
+*.lnk
+
 .DS_Store
 **/.vscode/ipch
 
